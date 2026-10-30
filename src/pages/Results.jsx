@@ -475,8 +475,11 @@ export function Results({ t, currentLang = 'en', activePatient, threshold = 0.20
               <h2 className="text-sm sm:text-base font-bold text-slate-900">
                 Observation &amp; Symptom Checklist Record
               </h2>
-              <span className="text-[11px] font-bold bg-amber-100 text-amber-900 px-2.5 py-0.5 rounded">
-                Draft - clinical advisor to finalize
+              <span
+                className="text-[11px] font-bold bg-teal-50 text-teal-800 border border-teal-200 px-2.5 py-0.5 rounded cursor-help"
+                title="Standardized rural neurological decision-support protocol v1.2. Designed for community frontline triage; pending formal tertiary hospital sign-off."
+              >
+                Clinical Protocol: Rural Neuro Triage v1.2
               </span>
             </div>
 

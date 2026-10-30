@@ -41,6 +41,8 @@ export function Home({
 }) {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
+  const [kpiFilter, setKpiFilter] = useState('all'); // 'all' | 'needs-visit' | 'followup-due' | 'completed'
+  const [conditionFilter, setConditionFilter] = useState('all'); // 'all' | 'MS' | 'Stroke' | "Parkinson's" | 'Epilepsy'
   const [carePlanPatient, setCarePlanPatient] = useState(null);
   const [viewDoctorSummaryPatient, setViewDoctorSummaryPatient] = useState(null);
   const [copiedSummary, setCopiedSummary] = useState(false);
@@ -100,9 +102,25 @@ export function Home({
     };
   }, [patients]);
 
-  // Filtered patients for search
+  // Combined filtering: Search Query + KPI Filter + Condition Filter
   const displayedPatients = useMemo(() => {
     let list = [...patientStats.evaluatedPatients];
+
+    // 1. KPI Filter
+    if (kpiFilter === 'needs-visit') {
+      list = list.filter(p => p.isNeedsVisit);
+    } else if (kpiFilter === 'followup-due') {
+      list = list.filter(p => !p.isConfirmed);
+    } else if (kpiFilter === 'completed') {
+      list = list.filter(p => p.isConfirmed);
+    }
+
+    // 2. Condition Filter
+    if (conditionFilter !== 'all') {
+      list = list.filter(p => p.condition === conditionFilter);
+    }
+
+    // 3. Search Query
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       list = list.filter(p =>
@@ -112,8 +130,9 @@ export function Home({
         p.id.toLowerCase().includes(q)
       );
     }
+
     return list;
-  }, [patientStats.evaluatedPatients, searchQuery]);
+  }, [patientStats.evaluatedPatients, kpiFilter, conditionFilter, searchQuery]);
 
   const handleStartCheck = (patientId) => {
     setActivePatientId(patientId);
@@ -469,7 +488,7 @@ export function Home({
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
       {/* Standard Header */}
-      <div className="flex items-center justify-between flex-wrap gap-3">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center shrink-0">
             <Users className="w-5 h-5" />
@@ -484,41 +503,160 @@ export function Home({
           </div>
         </div>
 
-        {/* Search Input */}
-        <div className="relative w-full sm:w-64">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search patients..."
-            className="w-full pl-9 pr-3 py-2 text-xs sm:text-sm bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 shadow-xs"
-          />
+        {/* Search Input & Condition Filter Pills */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
+          {/* Condition Filter Pills */}
+          <div className="flex items-center gap-1 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
+            {[
+              { id: 'all', label: 'All' },
+              { id: 'MS', label: 'MS' },
+              { id: 'Stroke', label: 'Stroke' },
+              { id: "Parkinson's", label: "Parkinson's" },
+              { id: 'Epilepsy', label: 'Epilepsy' }
+            ].map(cond => (
+              <button
+                key={cond.id}
+                type="button"
+                onClick={() => setConditionFilter(cond.id)}
+                className={`touch-target px-2.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
+                  conditionFilter === cond.id
+                    ? 'bg-teal-700 text-white shadow-xs'
+                    : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'
+                }`}
+              >
+                {cond.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Search Input */}
+          <div className="relative w-full sm:w-56 shrink-0">
+            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search patients..."
+              className="w-full pl-9 pr-3 py-1.5 text-xs sm:text-sm bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 shadow-xs"
+            />
+          </div>
         </div>
       </div>
 
-      {/* Top Counters */}
+      {/* Interactive KPI Filter Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-        <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs">
-          <span className="text-xs font-semibold text-slate-500 block">Total Enrolled</span>
-          <span className="text-2xl font-bold text-slate-900">{patientStats.totalCount}</span>
-        </div>
+        <button
+          type="button"
+          onClick={() => setKpiFilter('all')}
+          className={`touch-target p-4 rounded-2xl border text-left transition-all cursor-pointer ${
+            kpiFilter === 'all'
+              ? 'bg-teal-50/60 border-teal-500 ring-2 ring-teal-500/30 shadow-xs'
+              : 'bg-white border-slate-200 hover:border-slate-300 shadow-xs'
+          }`}
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-slate-600 block">Total Enrolled</span>
+            {kpiFilter === 'all' && <span className="w-2 h-2 rounded-full bg-teal-600"></span>}
+          </div>
+          <span className="text-2xl font-bold text-slate-900 mt-0.5 block">{patientStats.totalCount}</span>
+          <span className="text-[10px] text-slate-400 mt-1 block">
+            {kpiFilter === 'all' ? '● Showing all' : 'Click to show all'}
+          </span>
+        </button>
 
-        <div className="bg-white border border-red-200 rounded-2xl p-4 shadow-xs">
-          <span className="text-xs font-semibold text-red-700 block">Needs Doctor Visit</span>
-          <span className="text-2xl font-bold text-red-800">{patientStats.needsDoctorVisitCount}</span>
-        </div>
+        <button
+          type="button"
+          onClick={() => setKpiFilter(prev => prev === 'needs-visit' ? 'all' : 'needs-visit')}
+          className={`touch-target p-4 rounded-2xl border text-left transition-all cursor-pointer ${
+            kpiFilter === 'needs-visit'
+              ? 'bg-red-50/80 border-red-500 ring-2 ring-red-500/30 shadow-xs'
+              : 'bg-white border-red-200 hover:border-red-300 shadow-xs'
+          }`}
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-red-700 block">Needs Doctor Visit</span>
+            {kpiFilter === 'needs-visit' && <span className="w-2 h-2 rounded-full bg-red-600"></span>}
+          </div>
+          <span className="text-2xl font-bold text-red-800 mt-0.5 block">{patientStats.needsDoctorVisitCount}</span>
+          <span className="text-[10px] text-red-600 font-medium mt-1 block">
+            {kpiFilter === 'needs-visit' ? '● Filter active' : 'Click to filter'}
+          </span>
+        </button>
 
-        <div className="bg-white border border-amber-200 rounded-2xl p-4 shadow-xs">
-          <span className="text-xs font-semibold text-amber-800 block">Follow-up Due</span>
-          <span className="text-2xl font-bold text-amber-900">{patientStats.pendingVisits}</span>
-        </div>
+        <button
+          type="button"
+          onClick={() => setKpiFilter(prev => prev === 'followup-due' ? 'all' : 'followup-due')}
+          className={`touch-target p-4 rounded-2xl border text-left transition-all cursor-pointer ${
+            kpiFilter === 'followup-due'
+              ? 'bg-amber-50/80 border-amber-500 ring-2 ring-amber-500/30 shadow-xs'
+              : 'bg-white border-amber-200 hover:border-amber-300 shadow-xs'
+          }`}
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-amber-800 block">Follow-up Due</span>
+            {kpiFilter === 'followup-due' && <span className="w-2 h-2 rounded-full bg-amber-600"></span>}
+          </div>
+          <span className="text-2xl font-bold text-amber-900 mt-0.5 block">{patientStats.pendingVisits}</span>
+          <span className="text-[10px] text-amber-700 font-medium mt-1 block">
+            {kpiFilter === 'followup-due' ? '● Filter active' : 'Click to filter'}
+          </span>
+        </button>
 
-        <div className="bg-white border border-emerald-200 rounded-2xl p-4 shadow-xs">
-          <span className="text-xs font-semibold text-emerald-800 block">Visit Completed</span>
-          <span className="text-2xl font-bold text-emerald-900">{patientStats.completedVisits}</span>
-        </div>
+        <button
+          type="button"
+          onClick={() => setKpiFilter(prev => prev === 'completed' ? 'all' : 'completed')}
+          className={`touch-target p-4 rounded-2xl border text-left transition-all cursor-pointer ${
+            kpiFilter === 'completed'
+              ? 'bg-emerald-50/80 border-emerald-500 ring-2 ring-emerald-500/30 shadow-xs'
+              : 'bg-white border-emerald-200 hover:border-emerald-300 shadow-xs'
+          }`}
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-emerald-800 block">Visit Completed</span>
+            {kpiFilter === 'completed' && <span className="w-2 h-2 rounded-full bg-emerald-600"></span>}
+          </div>
+          <span className="text-2xl font-bold text-emerald-900 mt-0.5 block">{patientStats.completedVisits}</span>
+          <span className="text-[10px] text-emerald-700 font-medium mt-1 block">
+            {kpiFilter === 'completed' ? '● Filter active' : 'Click to filter'}
+          </span>
+        </button>
       </div>
+
+      {/* Active Filter Bar if filtered */}
+      {(kpiFilter !== 'all' || conditionFilter !== 'all' || searchQuery.trim() !== '') && (
+        <div className="bg-slate-50 border border-slate-200 px-3.5 py-2 rounded-xl flex items-center justify-between flex-wrap gap-2 text-xs">
+          <div className="flex items-center gap-2 text-slate-700">
+            <span className="font-bold text-slate-900">Filtered Results:</span>
+            <span>Showing {displayedPatients.length} of {patientStats.totalCount} patients</span>
+            {kpiFilter !== 'all' && (
+              <span className="bg-slate-200 text-slate-800 px-2 py-0.5 rounded text-[11px] font-semibold">
+                Status: {kpiFilter === 'needs-visit' ? 'Needs Doctor Visit' : kpiFilter === 'followup-due' ? 'Follow-up Due' : 'Completed'}
+              </span>
+            )}
+            {conditionFilter !== 'all' && (
+              <span className="bg-teal-100 text-teal-900 px-2 py-0.5 rounded text-[11px] font-semibold">
+                Condition: {conditionFilter}
+              </span>
+            )}
+            {searchQuery.trim() !== '' && (
+              <span className="bg-slate-200 text-slate-800 px-2 py-0.5 rounded text-[11px] font-semibold">
+                Query: "{searchQuery}"
+              </span>
+            )}
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              setKpiFilter('all');
+              setConditionFilter('all');
+              setSearchQuery('');
+            }}
+            className="text-xs font-bold text-teal-700 hover:text-teal-900 underline cursor-pointer"
+          >
+            Clear all filters
+          </button>
+        </div>
+      )}
 
       {/* PRIORITY ACTION QUEUE (Patients needing doctor attention) */}
       {patientStats.priorityQueue.length > 0 && (

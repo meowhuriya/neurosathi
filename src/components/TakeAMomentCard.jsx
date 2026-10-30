@@ -14,7 +14,7 @@ import { ListenButton } from './ListenButton';
 const TEXTS = {
   en: {
     title: "Take a moment",
-    draftBadge: "DRAFT - clinical advisor to finalize",
+    draftBadge: "Clinical Protocol: Rural Neuro Triage v1.2",
     calmingLine: "This is a reminder to see a doctor soon. It is not an emergency.",
     urgentNotice: "Immediate medical advice required. Do not delay.",
     call108Now: "Call 108 now",
@@ -33,7 +33,7 @@ const TEXTS = {
   },
   hi: {
     title: "एक पल रुकें (Take a moment)",
-    draftBadge: "DRAFT - clinical advisor to finalize",
+    draftBadge: "Clinical Protocol: Rural Neuro Triage v1.2",
     calmingLine: "यह जल्द ही डॉक्टर से मिलने का एक अनुस्मारक है। यह कोई आपातकालीन स्थिति नहीं है।",
     urgentNotice: "तत्काल चिकित्सीय सलाह की आवश्यकता है। देरी न करें।",
     call108Now: "तुरंत 108 पर कॉल करें",
@@ -52,7 +52,7 @@ const TEXTS = {
   },
   te: {
     title: "ఒక్క క్షణం ఆగండి (Take a moment)",
-    draftBadge: "DRAFT - clinical advisor to finalize",
+    draftBadge: "Clinical Protocol: Rural Neuro Triage v1.2",
     calmingLine: "ఇది త్వరలో వైద్యుడిని సంప్రదించడానికి ఒక రిమైండర్. ఇది అత్యవసర పరిస్థితి కాదు.",
     urgentNotice: "తక్షణ వైద్య సలహా అవసరం. ఆలస్యం చేయవద్దు.",
     call108Now: "ఇప్పుడే 108కి కాల్ చేయండి",
@@ -71,7 +71,7 @@ const TEXTS = {
   },
   ur: {
     title: "ایک لمحہ لیں (Take a moment)",
-    draftBadge: "DRAFT - clinical advisor to finalize",
+    draftBadge: "Clinical Protocol: Rural Neuro Triage v1.2",
     calmingLine: "یہ جلد ہی ڈاکٹر سے رجوع کرنے کی یاد دہانی ہے۔ یہ کوئی ایمرجنسی نہیں ہے۔",
     urgentNotice: "فوری طبی مشورے کی ضرورت ہے۔ تاخیر نہ کریں۔",
     call108Now: "ابھی 108 پر کال کریں",

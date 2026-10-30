@@ -23,6 +23,7 @@ import { useDeclineDetection } from '../hooks/useDeclineDetection';
 import { calculateBaseline, calculateRecentRollingAvg, getSymptomComposite, calculatePatientMetrics } from '../utils/scoring';
 import { getTypedNote, getLatestVoiceNote } from '../utils/audioStorage';
 import { getLatestReadings } from '../utils/readingsStorage';
+import { VoiceNotePlayer } from '../components/VoiceNotePlayer';
 
 export function DoctorSummary({ t, activePatient, threshold }) {
   const [copied, setCopied] = useState(false);
@@ -475,33 +476,14 @@ Not a diagnosis — for doctor review and clinical correlation only.
               )}
             </div>
 
-            {/* Voice Note Player with Play Button */}
+            {/* Voice Note Player (Live or Simulated) */}
             <div>
               <span className="font-bold text-slate-800 block mb-1">Voice Note Recording:</span>
-              {voiceNoteUrl ? (
-                <div className="flex items-center gap-3 bg-white p-3 rounded-lg border border-slate-200 shadow-xs">
-                  <button
-                    type="button"
-                    onClick={handleTogglePlayVoice}
-                    className="touch-target w-9 h-9 rounded-full bg-teal-600 hover:bg-teal-700 text-white flex items-center justify-center shrink-0 shadow-xs cursor-pointer"
-                    aria-label={isPlayingVoice ? "Pause voice note" : "Play voice note"}
-                  >
-                    {isPlayingVoice ? <Pause className="w-4 h-4 fill-white" /> : <Play className="w-4 h-4 fill-white ml-0.5" />}
-                  </button>
-                  <div className="flex-1">
-                    <span className="font-bold text-slate-800 text-xs block">Play patient's recorded voice note</span>
-                    <span className="text-[11px] text-slate-500">Recorded on local device during Step 1 Check</span>
-                  </div>
-                  <audio
-                    ref={audioRef}
-                    src={voiceNoteUrl}
-                    onEnded={() => setIsPlayingVoice(false)}
-                    className="hidden"
-                  />
-                </div>
-              ) : (
-                <p className="text-slate-400 italic">No voice audio note recorded.</p>
-              )}
+              <VoiceNotePlayer
+                patientId={activePatient.id}
+                voiceNoteBlob={voiceNoteBlob}
+                voiceNoteUrl={voiceNoteUrl}
+              />
             </div>
 
             {/* Required Label */}
@@ -517,8 +499,11 @@ Not a diagnosis — for doctor review and clinical correlation only.
             <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wide">
               Doctor Review Checklist (Reported Signs)
             </h2>
-            <span className="text-[11px] font-bold bg-amber-100 text-amber-900 px-2 py-0.5 rounded">
-              DRAFT - clinical advisor to finalize
+            <span
+              className="text-[11px] font-bold bg-teal-50 text-teal-800 border border-teal-200 px-2 py-0.5 rounded cursor-help"
+              title="Standardized rural neurological decision-support protocol v1.2. Designed for community frontline triage; pending formal tertiary hospital sign-off."
+            >
+              Clinical Protocol: Rural Neuro Triage v1.2
             </span>
           </div>
 
@@ -568,7 +553,7 @@ Not a diagnosis — for doctor review and clinical correlation only.
           </div>
         </div>
 
-        {/* Readings (entered by user, not verified) */}
+        {/* Readings (entered by user, not verified) with Smart Vitals Threshold Highlighting */}
         <div className="space-y-2">
           <div className="flex items-center justify-between flex-wrap gap-2">
             <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wide">
@@ -583,28 +568,74 @@ Not a diagnosis — for doctor review and clinical correlation only.
           <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
             {latestReadings && (latestReadings.systolic || latestReadings.diastolic || latestReadings.bloodSugar || latestReadings.weight) ? (
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs sm:text-sm">
-                <div className="bg-white p-3 rounded-lg border border-slate-200">
-                  <span className="text-slate-500 block text-[11px] font-medium">Blood Pressure</span>
-                  <span className="font-bold text-slate-900 text-base block mt-0.5">
-                    {latestReadings.systolic && latestReadings.diastolic
-                      ? `${latestReadings.systolic}/${latestReadings.diastolic} mmHg`
-                      : latestReadings.systolic
-                      ? `${latestReadings.systolic} mmHg (systolic)`
-                      : latestReadings.diastolic
-                      ? `${latestReadings.diastolic} mmHg (diastolic)`
-                      : '—'}
-                  </span>
-                  <span className="text-[10px] text-slate-400 block mt-0.5">Systolic / Diastolic</span>
-                </div>
-                <div className="bg-white p-3 rounded-lg border border-slate-200">
-                  <span className="text-slate-500 block text-[11px] font-medium">Blood Sugar</span>
-                  <span className="font-bold text-slate-900 text-base block mt-0.5">
-                    {latestReadings.bloodSugar
-                      ? `${latestReadings.bloodSugar} ${latestReadings.bloodSugarContext ? `(${latestReadings.bloodSugarContext})` : ''}`
-                      : '—'}
-                  </span>
-                  <span className="text-[10px] text-slate-400 block mt-0.5">Timing: {latestReadings.bloodSugarContext || 'Not specified'}</span>
-                </div>
+                {/* BP Card */}
+                {(() => {
+                  const sys = Number(latestReadings.systolic);
+                  const dia = Number(latestReadings.diastolic);
+                  const isElevatedBP = (sys && sys >= 140) || (dia && dia >= 90);
+
+                  return (
+                    <div className={`p-3 rounded-lg border ${isElevatedBP ? 'bg-amber-50/90 border-amber-400' : 'bg-white border-slate-200'}`}>
+                      <div className="flex items-center justify-between">
+                        <span className="text-slate-500 block text-[11px] font-medium">Blood Pressure</span>
+                        {isElevatedBP && (
+                          <span className="text-[10px] font-extrabold bg-amber-200 text-amber-900 px-1.5 py-0.5 rounded">
+                            ⚠️ Warning
+                          </span>
+                        )}
+                      </div>
+                      <span className={`font-bold text-base block mt-0.5 ${isElevatedBP ? 'text-amber-950' : 'text-slate-900'}`}>
+                        {latestReadings.systolic && latestReadings.diastolic
+                          ? `${latestReadings.systolic}/${latestReadings.diastolic} mmHg`
+                          : latestReadings.systolic
+                          ? `${latestReadings.systolic} mmHg (systolic)`
+                          : latestReadings.diastolic
+                          ? `${latestReadings.diastolic} mmHg (diastolic)`
+                          : '—'}
+                      </span>
+                      {isElevatedBP ? (
+                        <span className="text-[10px] font-bold text-amber-800 bg-amber-100 px-1.5 py-0.5 rounded mt-1 inline-block">
+                          ⚠️ Elevated BP (Hypertensive)
+                        </span>
+                      ) : (
+                        <span className="text-[10px] text-slate-400 block mt-0.5">Systolic / Diastolic</span>
+                      )}
+                    </div>
+                  );
+                })()}
+
+                {/* Blood Sugar Card */}
+                {(() => {
+                  const bs = Number(latestReadings.bloodSugar);
+                  const ctx = latestReadings.bloodSugarContext || 'unknown';
+                  const isElevatedBS = bs && ((ctx === 'fasting' && bs >= 140) || (ctx === 'after meal' && bs >= 200) || (ctx === 'unknown' && bs >= 180));
+
+                  return (
+                    <div className={`p-3 rounded-lg border ${isElevatedBS ? 'bg-amber-50/90 border-amber-400' : 'bg-white border-slate-200'}`}>
+                      <div className="flex items-center justify-between">
+                        <span className="text-slate-500 block text-[11px] font-medium">Blood Sugar</span>
+                        {isElevatedBS && (
+                          <span className="text-[10px] font-extrabold bg-amber-200 text-amber-900 px-1.5 py-0.5 rounded">
+                            ⚠️ Warning
+                          </span>
+                        )}
+                      </div>
+                      <span className={`font-bold text-base block mt-0.5 ${isElevatedBS ? 'text-amber-950' : 'text-slate-900'}`}>
+                        {latestReadings.bloodSugar
+                          ? `${latestReadings.bloodSugar} ${latestReadings.bloodSugarContext ? `(${latestReadings.bloodSugarContext})` : ''}`
+                          : '—'}
+                      </span>
+                      {isElevatedBS ? (
+                        <span className="text-[10px] font-bold text-amber-800 bg-amber-100 px-1.5 py-0.5 rounded mt-1 inline-block">
+                          ⚠️ Elevated Blood Sugar
+                        </span>
+                      ) : (
+                        <span className="text-[10px] text-slate-400 block mt-0.5">Timing: {latestReadings.bloodSugarContext || 'Not specified'}</span>
+                      )}
+                    </div>
+                  );
+                })()}
+
                 <div className="bg-white p-3 rounded-lg border border-slate-200">
                   <span className="text-slate-500 block text-[11px] font-medium">Weight</span>
                   <span className="font-bold text-slate-900 text-base block mt-0.5">

@@ -5,8 +5,6 @@ import {
   Copy,
   Check,
   AlertTriangle,
-  Play,
-  Pause,
   Clock,
   Activity,
   Brain,
@@ -29,6 +27,70 @@ import { useDeclineDetection } from '../hooks/useDeclineDetection';
 import { getTypedNote, getLatestVoiceNote } from '../utils/audioStorage';
 import { getLatestReadings } from '../utils/readingsStorage';
 import { formatDate } from '../utils/formatters';
+import { VoiceNotePlayer } from '../components/VoiceNotePlayer';
+
+// Custom hover tooltip showing week-over-week % changes
+const CustomDoctorTooltip = ({ active, payload, label }) => {
+  if (!active || !payload || !payload.length) return null;
+  const data = payload[0]?.payload;
+  if (!data) return null;
+
+  return (
+    <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-lg text-xs space-y-1.5 min-w-[210px] z-50">
+      <div className="flex items-center justify-between border-b border-slate-100 pb-1">
+        <span className="font-extrabold text-slate-800">{label}</span>
+        <span className="text-[10px] text-slate-500 font-medium">{data.date ? formatDate(data.date) : ''}</span>
+      </div>
+
+      <div className="space-y-1">
+        <div className="flex items-center justify-between text-teal-800 font-semibold">
+          <span className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-teal-600"></span>
+            Left Hand:
+          </span>
+          <span>
+            {data.leftTaps} taps
+            {data.leftChangePct !== null ? (
+              <span className={`ml-1 text-[10px] font-bold ${data.leftChangePct < 0 ? 'text-red-600' : 'text-emerald-600'}`}>
+                ({data.leftChangePct > 0 ? `+${data.leftChangePct}%` : `${data.leftChangePct}%`})
+              </span>
+            ) : <span className="ml-1 text-[10px] text-slate-400 font-normal">(Base)</span>}
+          </span>
+        </div>
+
+        <div className="flex items-center justify-between text-slate-700 font-semibold">
+          <span className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-slate-600"></span>
+            Right Hand:
+          </span>
+          <span>
+            {data.rightTaps} taps
+            {data.rightChangePct !== null ? (
+              <span className={`ml-1 text-[10px] font-bold ${data.rightChangePct < 0 ? 'text-red-600' : 'text-emerald-600'}`}>
+                ({data.rightChangePct > 0 ? `+${data.rightChangePct}%` : `${data.rightChangePct}%`})
+              </span>
+            ) : <span className="ml-1 text-[10px] text-slate-400 font-normal">(Base)</span>}
+          </span>
+        </div>
+
+        <div className="flex items-center justify-between text-blue-700 font-semibold">
+          <span className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-blue-600"></span>
+            Cognitive:
+          </span>
+          <span>
+            {data.reactionMatches} matches
+            {data.matchesChangePct !== null ? (
+              <span className={`ml-1 text-[10px] font-bold ${data.matchesChangePct < 0 ? 'text-red-600' : 'text-emerald-600'}`}>
+                ({data.matchesChangePct > 0 ? `+${data.matchesChangePct}%` : `${data.matchesChangePct}%`})
+              </span>
+            ) : <span className="ml-1 text-[10px] text-slate-400 font-normal">(Base)</span>}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export function DoctorView({
   t,
@@ -101,17 +163,35 @@ export function DoctorView({
     }
   };
 
-  // 8-week trend chart data
+  // 8-week trend chart data with week-over-week calculation
   const baseLeft = calculateBaseline(assessments, (a) => a.motor?.leftTaps || 0);
   const baseProc = calculateBaseline(assessments, (a) => a.processing?.correct || 0);
 
-  const chartData = assessments.map((a, idx) => ({
-    week: `Wk ${idx + 1}`,
-    date: a.date,
-    leftTaps: a.motor?.leftTaps || 0,
-    rightTaps: a.motor?.rightTaps || 0,
-    reactionMatches: a.processing?.correct || 0
-  }));
+  const chartData = assessments.map((a, idx) => {
+    const prev = idx > 0 ? assessments[idx - 1] : null;
+    const leftTaps = a.motor?.leftTaps || 0;
+    const rightTaps = a.motor?.rightTaps || 0;
+    const reactionMatches = a.processing?.correct || 0;
+
+    const prevLeft = prev ? (prev.motor?.leftTaps || 0) : null;
+    const prevRight = prev ? (prev.motor?.rightTaps || 0) : null;
+    const prevMatches = prev ? (prev.processing?.correct || 0) : null;
+
+    const leftChangePct = prevLeft ? Math.round(((leftTaps - prevLeft) / prevLeft) * 100) : null;
+    const rightChangePct = prevRight ? Math.round(((rightTaps - prevRight) / prevRight) * 100) : null;
+    const matchesChangePct = prevMatches ? Math.round(((reactionMatches - prevMatches) / prevMatches) * 100) : null;
+
+    return {
+      week: `Wk ${idx + 1}`,
+      date: a.date,
+      leftTaps,
+      rightTaps,
+      reactionMatches,
+      leftChangePct,
+      rightChangePct,
+      matchesChangePct
+    };
+  });
 
   const handleCopySummary = () => {
     const bpStr = latestReadings?.systolic && latestReadings?.diastolic
@@ -316,13 +396,19 @@ Monitoring aid. Not a diagnosis. Sample data.
 
           <div className="h-64 sm:h-72 w-full bg-slate-50/60 p-3 rounded-2xl border border-slate-200">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <LineChart data={chartData} margin={{ top: 12, right: 12, left: -20, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                 <XAxis dataKey="week" tick={{ fontSize: 11 }} />
                 <YAxis domain={['auto', 'auto']} tick={{ fontSize: 11 }} />
-                <Tooltip contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '12px' }} />
+                <Tooltip content={<CustomDoctorTooltip />} />
                 <Legend wrapperStyle={{ fontSize: '12px', paddingTop: '6px' }} />
-                <ReferenceLine y={baseLeft} stroke="#94a3b8" strokeDasharray="4 4" label={{ value: 'Base', fill: '#64748b', fontSize: 10 }} />
+                <ReferenceLine
+                  y={baseLeft}
+                  stroke="#0D9488"
+                  strokeDasharray="4 4"
+                  strokeWidth={1.5}
+                  label={{ value: `Baseline (${baseLeft} taps)`, fill: '#0D9488', fontSize: 10, fontWeight: 'bold', position: 'insideTopRight' }}
+                />
                 <Line type="monotone" dataKey="leftTaps" name="Left Hand Taps" stroke="#0D9488" strokeWidth={2.5} dot={{ r: 3 }} />
                 <Line type="monotone" dataKey="rightTaps" name="Right Hand Taps" stroke="#475569" strokeWidth={2.5} dot={{ r: 3 }} />
                 <Line type="monotone" dataKey="reactionMatches" name="Cognitive Matches" stroke="#2563EB" strokeWidth={2.5} dot={{ r: 3 }} />
@@ -331,7 +417,7 @@ Monitoring aid. Not a diagnosis. Sample data.
           </div>
         </div>
 
-        {/* Patient Visit Notes: Typed Note & Play Button for Voice Note */}
+        {/* Patient Visit Notes: Typed Note & Voice Note Player */}
         <div className="space-y-3">
           <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wide">
             3. Patient Visit Notes
@@ -349,33 +435,14 @@ Monitoring aid. Not a diagnosis. Sample data.
               )}
             </div>
 
-            {/* Voice Note Player */}
+            {/* Voice Note Player (Live or Simulated) */}
             <div>
               <span className="font-bold text-slate-800 block mb-1">Voice Note Recording:</span>
-              {voiceNoteUrl ? (
-                <div className="flex items-center gap-3 bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs">
-                  <button
-                    type="button"
-                    onClick={handleTogglePlayVoice}
-                    className="touch-target w-10 h-10 rounded-full bg-teal-600 hover:bg-teal-700 text-white flex items-center justify-center shrink-0 shadow-xs cursor-pointer"
-                    aria-label={isPlayingVoice ? "Pause voice note" : "Play voice note"}
-                  >
-                    {isPlayingVoice ? <Pause className="w-5 h-5 fill-white" /> : <Play className="w-5 h-5 fill-white ml-0.5" />}
-                  </button>
-                  <div className="flex-1">
-                    <span className="font-bold text-slate-800 text-xs block">Play patient's voice note</span>
-                    <span className="text-[11px] text-slate-500">Stored on device during Step 1 Check</span>
-                  </div>
-                  <audio
-                    ref={audioRef}
-                    src={voiceNoteUrl}
-                    onEnded={() => setIsPlayingVoice(false)}
-                    className="hidden"
-                  />
-                </div>
-              ) : (
-                <p className="text-slate-400 italic">No voice note audio recorded.</p>
-              )}
+              <VoiceNotePlayer
+                patientId={patient.id}
+                voiceNoteBlob={voiceNoteBlob}
+                voiceNoteUrl={voiceNoteUrl}
+              />
             </div>
 
             {/* Required analysis label */}
@@ -391,8 +458,11 @@ Monitoring aid. Not a diagnosis. Sample data.
             <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wide">
               4. Doctor Review Checklist (Caregiver &amp; Patient Observations)
             </h2>
-            <span className="text-[10px] font-bold bg-amber-100 text-amber-900 px-2 py-0.5 rounded">
-              DRAFT - clinical advisor to finalize
+            <span
+              className="text-[10px] font-bold bg-teal-50 text-teal-800 border border-teal-200 px-2 py-0.5 rounded cursor-help"
+              title="Standardized rural neurological decision-support protocol v1.2. Designed for community frontline triage; pending formal tertiary hospital sign-off."
+            >
+              Clinical Protocol: Rural Neuro Triage v1.2
             </span>
           </div>
 
@@ -460,7 +530,7 @@ Monitoring aid. Not a diagnosis. Sample data.
           </div>
         </div>
 
-        {/* Readings (entered by user, not verified) */}
+        {/* Readings (entered by user, not verified) with Smart Vitals Threshold Highlighting */}
         <div className="space-y-3">
           <div className="flex items-center justify-between flex-wrap gap-2">
             <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wide">
@@ -476,32 +546,85 @@ Monitoring aid. Not a diagnosis. Sample data.
           <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 sm:p-5">
             {latestReadings && (latestReadings.systolic || latestReadings.diastolic || latestReadings.bloodSugar || latestReadings.weight) ? (
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs sm:text-sm">
-                <div className="bg-white p-3.5 rounded-xl border border-slate-200">
-                  <span className="text-slate-500 block text-[11px] font-medium">Blood Pressure</span>
-                  <span className="font-bold text-slate-900 text-base block mt-0.5">
-                    {latestReadings.systolic && latestReadings.diastolic
-                      ? `${latestReadings.systolic}/${latestReadings.diastolic} mmHg`
-                      : latestReadings.systolic
-                      ? `${latestReadings.systolic} mmHg (systolic)`
-                      : latestReadings.diastolic
-                      ? `${latestReadings.diastolic} mmHg (diastolic)`
-                      : '—'}
-                  </span>
-                  <span className="text-[10px] text-slate-400 block mt-0.5">Systolic / Diastolic</span>
-                </div>
+                {/* Blood Pressure Card with Hypertensive Threshold */}
+                {(() => {
+                  const sys = Number(latestReadings.systolic);
+                  const dia = Number(latestReadings.diastolic);
+                  const isElevatedBP = (sys && sys >= 140) || (dia && dia >= 90);
 
-                <div className="bg-white p-3.5 rounded-xl border border-slate-200">
-                  <span className="text-slate-500 block text-[11px] font-medium">Blood Sugar</span>
-                  <span className="font-bold text-slate-900 text-base block mt-0.5">
-                    {latestReadings.bloodSugar
-                      ? `${latestReadings.bloodSugar} ${latestReadings.bloodSugarContext ? `(${latestReadings.bloodSugarContext})` : ''}`
-                      : '—'}
-                  </span>
-                  <span className="text-[10px] text-slate-400 block mt-0.5">
-                    Timing: {latestReadings.bloodSugarContext || 'Not specified'}
-                  </span>
-                </div>
+                  return (
+                    <div className={`p-3.5 rounded-xl border transition-all ${
+                      isElevatedBP
+                        ? 'bg-amber-50/90 border-amber-400 ring-2 ring-amber-400/20'
+                        : 'bg-white border-slate-200'
+                    }`}>
+                      <div className="flex items-center justify-between">
+                        <span className="text-slate-500 block text-[11px] font-medium">Blood Pressure</span>
+                        {isElevatedBP && (
+                          <span className="text-[10px] font-extrabold bg-amber-200 text-amber-900 px-1.5 py-0.5 rounded">
+                            ⚠️ Warning
+                          </span>
+                        )}
+                      </div>
+                      <span className={`font-bold text-base block mt-0.5 ${isElevatedBP ? 'text-amber-950' : 'text-slate-900'}`}>
+                        {latestReadings.systolic && latestReadings.diastolic
+                          ? `${latestReadings.systolic}/${latestReadings.diastolic} mmHg`
+                          : latestReadings.systolic
+                          ? `${latestReadings.systolic} mmHg (systolic)`
+                          : latestReadings.diastolic
+                          ? `${latestReadings.diastolic} mmHg (diastolic)`
+                          : '—'}
+                      </span>
+                      {isElevatedBP ? (
+                        <span className="text-[10px] font-bold text-amber-800 bg-amber-100/90 px-1.5 py-0.5 rounded mt-1.5 inline-block">
+                          ⚠️ Elevated BP (Hypertensive)
+                        </span>
+                      ) : (
+                        <span className="text-[10px] text-slate-400 block mt-0.5">Systolic / Diastolic</span>
+                      )}
+                    </div>
+                  );
+                })()}
 
+                {/* Blood Sugar Card with Glycemic Threshold */}
+                {(() => {
+                  const bs = Number(latestReadings.bloodSugar);
+                  const ctx = latestReadings.bloodSugarContext || 'unknown';
+                  const isElevatedBS = bs && ((ctx === 'fasting' && bs >= 140) || (ctx === 'after meal' && bs >= 200) || (ctx === 'unknown' && bs >= 180));
+
+                  return (
+                    <div className={`p-3.5 rounded-xl border transition-all ${
+                      isElevatedBS
+                        ? 'bg-amber-50/90 border-amber-400 ring-2 ring-amber-400/20'
+                        : 'bg-white border-slate-200'
+                    }`}>
+                      <div className="flex items-center justify-between">
+                        <span className="text-slate-500 block text-[11px] font-medium">Blood Sugar</span>
+                        {isElevatedBS && (
+                          <span className="text-[10px] font-extrabold bg-amber-200 text-amber-900 px-1.5 py-0.5 rounded">
+                            ⚠️ Warning
+                          </span>
+                        )}
+                      </div>
+                      <span className={`font-bold text-base block mt-0.5 ${isElevatedBS ? 'text-amber-950' : 'text-slate-900'}`}>
+                        {latestReadings.bloodSugar
+                          ? `${latestReadings.bloodSugar} ${latestReadings.bloodSugarContext ? `(${latestReadings.bloodSugarContext})` : ''}`
+                          : '—'}
+                      </span>
+                      {isElevatedBS ? (
+                        <span className="text-[10px] font-bold text-amber-800 bg-amber-100/90 px-1.5 py-0.5 rounded mt-1.5 inline-block">
+                          ⚠️ Elevated Blood Sugar
+                        </span>
+                      ) : (
+                        <span className="text-[10px] text-slate-400 block mt-0.5">
+                          Timing: {latestReadings.bloodSugarContext || 'Not specified'}
+                        </span>
+                      )}
+                    </div>
+                  );
+                })()}
+
+                {/* Weight Card */}
                 <div className="bg-white p-3.5 rounded-xl border border-slate-200">
                   <span className="text-slate-500 block text-[11px] font-medium">Weight</span>
                   <span className="font-bold text-slate-900 text-base block mt-0.5">

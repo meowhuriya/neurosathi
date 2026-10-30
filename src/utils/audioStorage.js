@@ -129,6 +129,128 @@ export async function deleteVoiceNote(patientId, date) {
   }
 }
 
+// Default condition-specific clinical notes and simulated voice recordings for pre-loaded patients
+export const SAMPLE_CLINICAL_NOTES = {
+  'NS-001': {
+    patientName: 'Lakshmi',
+    condition: 'MS',
+    typedNote: "Patient reports worsening right leg heaviness and fatigue making cooking difficult by late afternoon. Caregiver noted she needed help buttoning her blouse this morning. No acute fever or urinary retention.",
+    voiceNote: {
+      durationSec: 18,
+      durationFormatted: "0:18",
+      speaker: "Lakshmi (Patient)",
+      hindi: "दीदी, पिछले चार-पांच दिनों से दोपहर होते-होते सीधे पैर में बहुत भारीपन लगता है। रसोई में काम करने में भी हाथ कांपने लगता है और थकान बहुत जल्दी हो जाती है।",
+      english: "Didi (sister), for the past 4-5 days, my right leg feels very heavy by afternoon. My hand has also started trembling while working in the kitchen, and fatigue sets in very quickly."
+    }
+  },
+  'NS-002': {
+    patientName: 'Ravi',
+    condition: 'Stroke',
+    typedNote: "Wife mentions Ravi drops his teacup frequently with the right hand. Speech seems slightly more slurred when tired in the evening. BP recorded 152/95 mmHg today at home. Refilled Amlodipine yesterday.",
+    voiceNote: {
+      durationSec: 18,
+      durationFormatted: "0:18",
+      speaker: "Sunita (Caregiver / Wife)",
+      hindi: "हाथ में चाय का कप पकड़ने में ताकत कम लगती है, दो बार हाथ से गिर चुका है। शाम को बोलने में जुबान थोड़ी लड़खड़ाती है। आज बीपी भी 152/95 आया था।",
+      english: "He has less grip strength to hold a teacup in his right hand, dropped it twice. In the evening his speech is somewhat slurred. Today his blood pressure was also 152/95 mmHg."
+    }
+  },
+  'NS-009': {
+    patientName: 'Ramesh',
+    condition: "Parkinson's",
+    typedNote: "Son reports Ramesh had a near-fall while getting out of bed last Thursday. Morning stiffness takes nearly 45 minutes to ease after taking Levodopa. Mild resting tremor in left thumb.",
+    voiceNote: {
+      durationSec: 18,
+      durationFormatted: "0:18",
+      speaker: "Kiran (Caregiver / Son)",
+      hindi: "सुबह उठने के बाद चलने में बहुत समय लगता है, पैर ज़मीन से चिपक जाते हैं। गुरुवार को बिस्तर से उठते समय गिरते-गिरते बचे। दवा लेने के बाद ही कुछ राहत मिलती है।",
+      english: "After waking in the morning, it takes a long time to walk; his feet freeze to the floor. On Thursday he nearly fell getting out of bed. Only after taking medicine does he get some relief."
+    }
+  },
+  'NS-003': {
+    patientName: 'Priya',
+    condition: 'MS',
+    typedNote: "Routine 8-week home check. Priya reports stable energy levels with Glatiramer. Balance is steady during household chores; visual acuity unaffected.",
+    voiceNote: {
+      durationSec: 18,
+      durationFormatted: "0:18",
+      speaker: "Priya (Patient)",
+      hindi: "इस हफ्ते सब सामान्य रहा। इंजेक्शन के बाद कोई ज्यादा परेशानी नहीं हुई और चलने-फिरने में संतुलन ठीक है।",
+      english: "Everything was normal this week. No major issues after the injection and balance while walking is fine."
+    }
+  },
+  'NS-004': {
+    patientName: 'Ankit',
+    condition: 'Epilepsy',
+    typedNote: "Ankit took all Levetiracetam doses on time this week. Experienced one brief 30-second aura of epigastric fullness on Tuesday night while studying late, but no loss of consciousness or convulsions.",
+    voiceNote: {
+      durationSec: 18,
+      durationFormatted: "0:18",
+      speaker: "Ankit (Patient)",
+      hindi: "मंगलवार रात को पढ़ाई करते समय पेट में अजीब सा खिंचाव महसूस हुआ था जैसे दौरा आने वाला हो, पर मैंने आराम किया और दवा बराबर ली तो दौरा नहीं पड़ा।",
+      english: "On Tuesday night while studying, I felt a strange pulling in my stomach like a seizure warning, but I rested and took my medicine, so no full seizure occurred."
+    }
+  },
+  'NS-005': {
+    patientName: 'Fatima',
+    condition: 'Epilepsy',
+    typedNote: "Caregiver notes Fatima has been regular with Sodium Valproate. Mild morning drowsiness reported after evening Clobazam dose. No daytime absence spells noted by family.",
+    voiceNote: {
+      durationSec: 18,
+      durationFormatted: "0:18",
+      speaker: "Fatima's Sister (Caregiver)",
+      hindi: "फातिमा अब दवाएं समय पर ले रही हैं। बस रात वाली गोली के बाद सुबह उठने में थोड़ी सुस्ती रहती है, पर दिन में कोई चक्कर या बेहोशी नहीं हुई।",
+      english: "Fatima is taking medicines on time now. Just has some sluggishness waking up after the night tablet, but no daytime dizziness or fainting has occurred."
+    }
+  },
+  'NS-006': {
+    patientName: 'Suresh',
+    condition: 'Stroke',
+    typedNote: "Suresh performing daily hand grip exercises with rubber ball. Left grip strength improving steadily. BP stable at 127/80 mmHg.",
+    voiceNote: {
+      durationSec: 18,
+      durationFormatted: "0:18",
+      speaker: "Suresh (Patient)",
+      hindi: "हाथ की कसरत रोज़ कर रहा हूँ। अब चम्मच पकड़ने में पहले से बेहतर महसूस हो रहा है और बीपी भी ठीक है।",
+      english: "Doing hand exercises daily. Holding a spoon feels better than before and blood pressure is also normal."
+    }
+  },
+  'NS-007': {
+    patientName: 'Meena',
+    condition: 'MS',
+    typedNote: "Meena reports mild fatigue in warm weather but manages daily teaching responsibilities. No new numbness or tingling in extremities.",
+    voiceNote: {
+      durationSec: 18,
+      durationFormatted: "0:18",
+      speaker: "Meena (Patient)",
+      hindi: "धूप में थोड़ी थकावट लगती है लेकिन बाकी दिनचर्या ठीक चल रही है। पैरों में कोई नई झनझनाहट नहीं है।",
+      english: "Feel some tiredness in the sun but daily routine is going well. No new tingling or numbness in the legs."
+    }
+  },
+  'NS-008': {
+    patientName: 'Arjun',
+    condition: 'Epilepsy',
+    typedNote: "Arjun completed 6 months seizure-free on Carbamazepine. Attends college regularly. Sleeps 8 hours nightly as advised.",
+    voiceNote: {
+      durationSec: 18,
+      durationFormatted: "0:18",
+      speaker: "Arjun (Patient)",
+      hindi: "दवा समय पर ले रहा हूँ और समय पर सोता हूँ। कोई परेशानी नहीं हुई, कॉलेज की कक्षाएं आराम से ले रहा हूँ।",
+      english: "Taking medication on time and sleeping on schedule. No issues at all, attending college classes smoothly."
+    }
+  }
+};
+
+export function getSimulatedVoiceNote(patientId) {
+  return SAMPLE_CLINICAL_NOTES[patientId]?.voiceNote || {
+    durationSec: 18,
+    durationFormatted: "0:18",
+    speaker: "Caregiver / Patient",
+    hindi: "मरीज की स्थिति की निगरानी की गई है। आज का चेक पूरा हो चुका है।",
+    english: "Patient condition monitored during frontline check. Today's routine check completed."
+  };
+}
+
 export function saveTypedNote(patientId, date, text) {
   try {
     localStorage.setItem(`neurosathi_typed_note_${patientId}_${date}`, text);
@@ -152,9 +274,13 @@ export function getTypedNote(patientId, date) {
       if (val) return val;
     }
     const today = new Date().toISOString().split('T')[0];
-    return localStorage.getItem(`neurosathi_typed_note_${patientId}_${today}`) || '';
+    const storedToday = localStorage.getItem(`neurosathi_typed_note_${patientId}_${today}`);
+    if (storedToday) return storedToday;
+
+    // Fallback to rich condition-specific sample note if no custom note typed
+    return SAMPLE_CLINICAL_NOTES[patientId]?.typedNote || '';
   } catch (err) {
-    return '';
+    return SAMPLE_CLINICAL_NOTES[patientId]?.typedNote || '';
   }
 }
 
