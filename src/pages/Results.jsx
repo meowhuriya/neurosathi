@@ -103,7 +103,10 @@ export function Results({ t, currentLang = 'en', activePatient, threshold = 0.20
         sessionCheck.strokeQuestions.dressing === 'no' ||
         sessionCheck.strokeQuestions.walking === 'no' ||
         sessionCheck.strokeQuestions.speech === 'no' ||
-        sessionCheck.strokeQuestions.medicines === 'no'
+        sessionCheck.strokeQuestions.medicines === 'no' ||
+        sessionCheck.strokeQuestions.spasticity === 'yes' ||
+        sessionCheck.strokeQuestions.neglect === 'yes' ||
+        sessionCheck.strokeQuestions.bladder === 'yes'
       );
       const isMotorDeclining = tappingDropPct >= Math.round(currentThreshold * 100);
       if (isMotorDeclining || isCaregiverFlagged || detectionResult.isDeclining) {
@@ -120,11 +123,15 @@ export function Results({ t, currentLang = 'en', activePatient, threshold = 0.20
       const seizures = sessionCheck?.epilepsyCheck?.seizures;
       const missed = sessionCheck?.epilepsyCheck?.missedDoses;
       const injury = sessionCheck?.epilepsyCheck?.injury;
+      const auras = sessionCheck?.epilepsyCheck?.auras;
+      const prolongedWeakness = sessionCheck?.epilepsyCheck?.prolongedWeakness;
       const hasRecentSeizures = seizures && seizures !== '0';
       const hasMissed = missed && missed !== 'none';
       const hasInjury = injury === 'yes';
+      const hasAuras = auras === 'yes';
+      const hasWeakness = prolongedWeakness === 'yes';
 
-      if (hasRecentSeizures || hasMissed || hasInjury) {
+      if (hasRecentSeizures || hasMissed || hasInjury || hasAuras || hasWeakness) {
         statusType = 'needs-visit';
       } else {
         statusType = 'stable';
@@ -143,7 +150,12 @@ export function Results({ t, currentLang = 'en', activePatient, threshold = 0.20
     }
   } else {
     // MS condition
-    if (detectionResult.isDeclining || tappingDropPct >= Math.round(currentThreshold * 100)) {
+    const msOptic = sessionCheck?.msQuestions?.opticPain === 'yes';
+    const msBladder = sessionCheck?.msQuestions?.bladder === 'yes';
+    const msWalking = sessionCheck?.msQuestions?.walkingWorse === 'yes';
+    const msVision = sessionCheck?.msQuestions?.visionWorse === 'yes';
+
+    if (detectionResult.isDeclining || tappingDropPct >= Math.round(currentThreshold * 100) || msOptic || msBladder || msWalking || msVision) {
       statusType = 'needs-visit';
     } else {
       statusType = 'stable';

@@ -82,7 +82,10 @@ export function MotorAssessment({ t, currentLang = 'en', activePatient, onSaveMo
     dressing: null,
     walking: null,
     speech: null,
-    medicines: null
+    medicines: null,
+    spasticity: null, // Stiff/locked limbs
+    neglect: null,    // Ignores one side of body/plate
+    bladder: null     // Urinary urgency / leakage / trouble passing
   });
   const [strokeUrgent, setStrokeUrgent] = useState(null); // 'yes' | 'no'
   const [strokeReadings, setStrokeReadings] = useState({
@@ -98,6 +101,8 @@ export function MotorAssessment({ t, currentLang = 'en', activePatient, onSaveMo
   const [epilepsyMissedDoses, setEpilepsyMissedDoses] = useState(null); // 'none' | '1-2' | 'many'
   const [epilepsyTriggers, setEpilepsyTriggers] = useState(null); // 'poor-sleep' | 'fever' | 'none'
   const [epilepsyInjury, setEpilepsyInjury] = useState(null); // 'yes' | 'no'
+  const [epilepsyAuras, setEpilepsyAuras] = useState(null); // 'yes' | 'no' - Focal warning signs
+  const [epilepsyWeakness, setEpilepsyWeakness] = useState(null); // 'yes' | 'no' - Lingering post-seizure weakness
   const [epilepsyUrgent, setEpilepsyUrgent] = useState(null); // 'yes' | 'no'
 
   // Condition 3: Parkinson's state
@@ -125,6 +130,8 @@ export function MotorAssessment({ t, currentLang = 'en', activePatient, onSaveMo
   const [msFatigue, setMsFatigue] = useState(3);
   const [msWalkingWorse, setMsWalkingWorse] = useState(null);
   const [msVisionWorse, setMsVisionWorse] = useState(null);
+  const [msOpticPain, setMsOpticPain] = useState(null); // 'yes' | 'no' - Eye movement pain / sudden blur
+  const [msBladder, setMsBladder] = useState(null); // 'yes' | 'no' - Bladder urgency / leakage / retention
 
   // Global assessment timers
   const timerRef = useRef(null);
@@ -321,6 +328,9 @@ export function MotorAssessment({ t, currentLang = 'en', activePatient, onSaveMo
     strokeQuestions.walking !== null &&
     strokeQuestions.speech !== null &&
     strokeQuestions.medicines !== null &&
+    strokeQuestions.spasticity !== null &&
+    strokeQuestions.neglect !== null &&
+    strokeQuestions.bladder !== null &&
     strokeUrgent !== null
   );
 
@@ -329,6 +339,8 @@ export function MotorAssessment({ t, currentLang = 'en', activePatient, onSaveMo
     epilepsyMissedDoses !== null &&
     epilepsyTriggers !== null &&
     epilepsyInjury !== null &&
+    epilepsyAuras !== null &&
+    epilepsyWeakness !== null &&
     epilepsyUrgent !== null
   );
 
@@ -342,7 +354,9 @@ export function MotorAssessment({ t, currentLang = 'en', activePatient, onSaveMo
     msTappingPhase === 'done' &&
     msSymbolPhase === 'done' &&
     msWalkingWorse !== null &&
-    msVisionWorse !== null
+    msVisionWorse !== null &&
+    msOpticPain !== null &&
+    msBladder !== null
   );
 
   const isAlternativeComplete = Object.values(yesNoAnswers).every(v => v === 'yes' || v === 'no');
@@ -423,7 +437,9 @@ export function MotorAssessment({ t, currentLang = 'en', activePatient, onSaveMo
           seizures: epilepsySeizures,
           missedDoses: epilepsyMissedDoses,
           triggers: epilepsyTriggers,
-          injury: epilepsyInjury
+          injury: epilepsyInjury,
+          auras: epilepsyAuras,
+          prolongedWeakness: epilepsyWeakness
         },
         epilepsyUrgent,
         isUrgent
@@ -456,7 +472,13 @@ export function MotorAssessment({ t, currentLang = 'en', activePatient, onSaveMo
         ...sessionData,
         msTapping: { leftTaps: msLeftTaps, rightTaps: msRightTaps },
         msProcessing: { correct: msSymbolScore, avgReactionMs: avgRt },
-        msQuestions: { fatigue: msFatigue, walkingWorse: msWalkingWorse, visionWorse: msVisionWorse },
+        msQuestions: {
+          fatigue: msFatigue,
+          walkingWorse: msWalkingWorse,
+          visionWorse: msVisionWorse,
+          opticPain: msOpticPain,
+          bladder: msBladder
+        },
         isUrgent: false,
         motor: { leftTaps: msLeftTaps, rightTaps: msRightTaps, lrDiff: Math.abs(msLeftTaps - msRightTaps) },
         processing: { correct: msSymbolScore, avgReactionMs: avgRt }
@@ -747,6 +769,68 @@ export function MotorAssessment({ t, currentLang = 'en', activePatient, onSaveMo
                 </div>
               </div>
             ))}
+
+            {/* Clinical Recovery & Caregiver Observations */}
+            <div className="pt-2 border-t border-slate-200">
+              <span className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-3">
+                Recovery &amp; Neurological Signs (DRAFT - clinical advisor to finalize)
+              </span>
+
+              {[
+                {
+                  key: 'spasticity',
+                  label: '6. Limb stiffness / spasms',
+                  text: 'Are the arms or legs becoming stiff, tight, or hard to straighten out?',
+                  yesLabel: 'Yes (Stiff / Spasms)',
+                  noLabel: 'No (Flexible)'
+                },
+                {
+                  key: 'neglect',
+                  label: '7. One-sided attention (Caregiver observation)',
+                  text: 'Does the patient ignore food on one side of the plate, or bump into things on one side?',
+                  yesLabel: 'Yes (Ignores one side)',
+                  noLabel: 'No (Balanced attention)'
+                },
+                {
+                  key: 'bladder',
+                  label: '8. Bladder / bowel control',
+                  text: 'Any new trouble holding urine, leakage, or difficulty passing urine?',
+                  yesLabel: 'Yes (Trouble / Leakage)',
+                  noLabel: 'No (Normal control)'
+                }
+              ].map((item) => (
+                <div key={item.key} className="p-3 mb-2.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+                  <div>
+                    <span className="text-xs font-bold text-teal-800 block">{item.label}</span>
+                    <span className="text-sm font-semibold text-slate-800 block mt-0.5">{item.text}</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setStrokeQuestions(p => ({ ...p, [item.key]: 'yes' }))}
+                      className={`touch-target py-2 px-3 rounded-lg font-bold text-xs sm:text-sm cursor-pointer ${
+                        strokeQuestions[item.key] === 'yes'
+                          ? 'bg-amber-600 text-white'
+                          : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'
+                      }`}
+                    >
+                      {item.yesLabel} {strokeQuestions[item.key] === 'yes' && '✓'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setStrokeQuestions(p => ({ ...p, [item.key]: 'no' }))}
+                      className={`touch-target py-2 px-3 rounded-lg font-bold text-xs sm:text-sm cursor-pointer ${
+                        strokeQuestions[item.key] === 'no'
+                          ? 'bg-emerald-700 text-white'
+                          : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'
+                      }`}
+                    >
+                      {item.noLabel} {strokeQuestions[item.key] === 'no' && '✓'}
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
 
           {/* Stroke Section 3: Urgent Warning Check */}
@@ -1010,6 +1094,84 @@ export function MotorAssessment({ t, currentLang = 'en', activePatient, onSaveMo
                 }`}
               >
                 No injury {epilepsyInjury === 'no' && '✓'}
+              </button>
+            </div>
+          </div>
+
+          {/* Warning signs / Focal auras */}
+          <div className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200 shadow-xs space-y-3">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <label className="text-sm sm:text-base font-bold text-slate-900 block">
+                5. Warning signs / Auras before a seizure
+              </label>
+              <span className="text-[10px] font-bold bg-amber-100 text-amber-900 px-2 py-0.5 rounded">
+                DRAFT - clinical advisor to finalize
+              </span>
+            </div>
+            <p className="text-xs text-slate-600">
+              Any unusual warning signs before a spell—like a rising feeling in the stomach, strange smell, or sudden unexplainable fear?
+            </p>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setEpilepsyAuras('yes')}
+                className={`touch-target py-3 px-4 rounded-xl font-bold text-xs sm:text-sm cursor-pointer ${
+                  epilepsyAuras === 'yes'
+                    ? 'bg-amber-600 text-white ring-2 ring-amber-400'
+                    : 'bg-slate-50 hover:bg-slate-100 text-slate-800 border border-slate-200'
+                }`}
+              >
+                Yes (Warnings present) {epilepsyAuras === 'yes' && '✓'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setEpilepsyAuras('no')}
+                className={`touch-target py-3 px-4 rounded-xl font-bold text-xs sm:text-sm cursor-pointer ${
+                  epilepsyAuras === 'no'
+                    ? 'bg-emerald-700 text-white'
+                    : 'bg-slate-50 hover:bg-slate-100 text-slate-800 border border-slate-200'
+                }`}
+              >
+                No warnings {epilepsyAuras === 'no' && '✓'}
+              </button>
+            </div>
+          </div>
+
+          {/* Prolonged post-seizure weakness */}
+          <div className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200 shadow-xs space-y-3">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <label className="text-sm sm:text-base font-bold text-slate-900 block">
+                6. Lingering weakness after seizure
+              </label>
+              <span className="text-[10px] font-bold bg-amber-100 text-amber-900 px-2 py-0.5 rounded">
+                DRAFT - clinical advisor to finalize
+              </span>
+            </div>
+            <p className="text-xs text-slate-600">
+              Did new weakness in an arm or leg last more than an hour after the seizure?
+            </p>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setEpilepsyWeakness('yes')}
+                className={`touch-target py-3 px-4 rounded-xl font-bold text-xs sm:text-sm cursor-pointer ${
+                  epilepsyWeakness === 'yes'
+                    ? 'bg-amber-600 text-white ring-2 ring-amber-400'
+                    : 'bg-slate-50 hover:bg-slate-100 text-slate-800 border border-slate-200'
+                }`}
+              >
+                Yes (Weakness &gt; 1 hour) {epilepsyWeakness === 'yes' && '✓'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setEpilepsyWeakness('no')}
+                className={`touch-target py-3 px-4 rounded-xl font-bold text-xs sm:text-sm cursor-pointer ${
+                  epilepsyWeakness === 'no'
+                    ? 'bg-emerald-700 text-white'
+                    : 'bg-slate-50 hover:bg-slate-100 text-slate-800 border border-slate-200'
+                }`}
+              >
+                No lingering weakness {epilepsyWeakness === 'no' && '✓'}
               </button>
             </div>
           </div>
@@ -1439,6 +1601,72 @@ export function MotorAssessment({ t, currentLang = 'en', activePatient, onSaveMo
                   }`}
                 >
                   No {msVisionWorse === 'no' && '✓'}
+                </button>
+              </div>
+            </div>
+
+            {/* Optic Neuritis Check */}
+            <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+              <div className="flex items-center justify-between flex-wrap gap-1">
+                <span className="text-xs font-bold text-teal-800 block">Eye pain / Acute vision change (Optic check)</span>
+                <span className="text-[10px] font-bold bg-amber-100 text-amber-900 px-2 py-0.5 rounded">
+                  DRAFT - clinical advisor to finalize
+                </span>
+              </div>
+              <span className="text-sm font-semibold text-slate-800 block">
+                Any new pain behind either eye when moving it, or sudden cloudy/dim vision?
+              </span>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setMsOpticPain('yes')}
+                  className={`touch-target py-2 px-3 rounded-lg font-bold text-xs sm:text-sm cursor-pointer ${
+                    msOpticPain === 'yes' ? 'bg-amber-600 text-white' : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'
+                  }`}
+                >
+                  Yes (Eye pain / Dim vision) {msOpticPain === 'yes' && '✓'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMsOpticPain('no')}
+                  className={`touch-target py-2 px-3 rounded-lg font-bold text-xs sm:text-sm cursor-pointer ${
+                    msOpticPain === 'no' ? 'bg-emerald-700 text-white' : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'
+                  }`}
+                >
+                  No {msOpticPain === 'no' && '✓'}
+                </button>
+              </div>
+            </div>
+
+            {/* Neurogenic Bladder / Incontinence Check */}
+            <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+              <div className="flex items-center justify-between flex-wrap gap-1">
+                <span className="text-xs font-bold text-teal-800 block">Bladder / Bowel control</span>
+                <span className="text-[10px] font-bold bg-amber-100 text-amber-900 px-2 py-0.5 rounded">
+                  DRAFT - clinical advisor to finalize
+                </span>
+              </div>
+              <span className="text-sm font-semibold text-slate-800 block">
+                Any new trouble holding urine, leakage, or difficulty passing urine?
+              </span>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setMsBladder('yes')}
+                  className={`touch-target py-2 px-3 rounded-lg font-bold text-xs sm:text-sm cursor-pointer ${
+                    msBladder === 'yes' ? 'bg-amber-600 text-white' : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'
+                  }`}
+                >
+                  Yes (Trouble / Leakage) {msBladder === 'yes' && '✓'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMsBladder('no')}
+                  className={`touch-target py-2 px-3 rounded-lg font-bold text-xs sm:text-sm cursor-pointer ${
+                    msBladder === 'no' ? 'bg-emerald-700 text-white' : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'
+                  }`}
+                >
+                  No (Normal control) {msBladder === 'no' && '✓'}
                 </button>
               </div>
             </div>

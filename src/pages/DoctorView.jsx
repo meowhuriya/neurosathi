@@ -51,13 +51,14 @@ export function DoctorView({
   const [isPlayingVoice, setIsPlayingVoice] = useState(false);
   const audioRef = useRef(null);
   const [latestReadings, setLatestReadings] = useState(null);
+  const [sessionCheck, setSessionCheck] = useState(null);
 
   const startDate = assessments[0]?.date ? formatDate(assessments[0].date) : "N/A";
   const endDate = assessments[assessments.length - 1]?.date ? formatDate(assessments[assessments.length - 1].date) : "N/A";
 
   const isDecline = Boolean(detectionResult.isDeclining || tappingDropPct >= 20 || reactionSlowedPct >= 20);
 
-  // Load patient notes & latest user-entered readings
+  // Load patient notes, readings, and session check
   useEffect(() => {
     let isMounted = true;
     const note = getTypedNote(patient.id);
@@ -65,6 +66,11 @@ export function DoctorView({
 
     const readings = getLatestReadings(patient);
     setLatestReadings(readings);
+
+    try {
+      const stored = localStorage.getItem('neurosathi_session_check');
+      if (stored) setSessionCheck(JSON.parse(stored));
+    } catch (e) {}
 
     getLatestVoiceNote(patient.id).then((res) => {
       if (isMounted && res?.blob) {
@@ -375,6 +381,81 @@ Monitoring aid. Not a diagnosis. Sample data.
             {/* Required analysis label */}
             <p className="text-[11px] text-slate-500 font-medium pt-1 border-t border-slate-200">
               Voice notes are played back for the doctor; automatic analysis is a future step.
+            </p>
+          </div>
+        </div>
+
+        {/* Doctor Review Checklist (Caregiver & Patient Observations) */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wide">
+              4. Doctor Review Checklist (Caregiver &amp; Patient Observations)
+            </h2>
+            <span className="text-[10px] font-bold bg-amber-100 text-amber-900 px-2 py-0.5 rounded">
+              DRAFT - clinical advisor to finalize
+            </span>
+          </div>
+
+          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 sm:p-5 space-y-3 text-xs sm:text-sm">
+            {patient.condition === 'Stroke' && (
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className={`p-3 rounded-xl border ${sessionCheck?.strokeQuestions?.spasticity === 'yes' ? 'bg-amber-50 border-amber-300 text-amber-950 font-bold' : 'bg-white border-slate-200'}`}>
+                  <span className="text-[11px] text-slate-500 block font-medium">Post-Stroke Spasticity</span>
+                  <span className="text-sm block mt-0.5">
+                    {sessionCheck?.strokeQuestions?.spasticity === 'yes' ? '⚠ Limb stiffness / spasms reported' : sessionCheck?.strokeQuestions?.spasticity === 'no' ? 'No limb rigidity' : 'Not recorded'}
+                  </span>
+                </div>
+                <div className={`p-3 rounded-xl border ${sessionCheck?.strokeQuestions?.neglect === 'yes' ? 'bg-amber-50 border-amber-300 text-amber-950 font-bold' : 'bg-white border-slate-200'}`}>
+                  <span className="text-[11px] text-slate-500 block font-medium">Hemispatial Neglect</span>
+                  <span className="text-sm block mt-0.5">
+                    {sessionCheck?.strokeQuestions?.neglect === 'yes' ? '⚠ Ignores one side / plate food' : sessionCheck?.strokeQuestions?.neglect === 'no' ? 'Normal attention' : 'Not recorded'}
+                  </span>
+                </div>
+                <div className={`p-3 rounded-xl border ${sessionCheck?.strokeQuestions?.bladder === 'yes' ? 'bg-amber-50 border-amber-300 text-amber-950 font-bold' : 'bg-white border-slate-200'}`}>
+                  <span className="text-[11px] text-slate-500 block font-medium">Bladder Control</span>
+                  <span className="text-sm block mt-0.5">
+                    {sessionCheck?.strokeQuestions?.bladder === 'yes' ? '⚠ Urgency / leakage / retention' : sessionCheck?.strokeQuestions?.bladder === 'no' ? 'Normal control' : 'Not recorded'}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {patient.condition === 'Epilepsy' && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className={`p-3 rounded-xl border ${sessionCheck?.epilepsyCheck?.auras === 'yes' ? 'bg-amber-50 border-amber-300 text-amber-950 font-bold' : 'bg-white border-slate-200'}`}>
+                  <span className="text-[11px] text-slate-500 block font-medium">Focal Seizure Auras</span>
+                  <span className="text-sm block mt-0.5">
+                    {sessionCheck?.epilepsyCheck?.auras === 'yes' ? '⚠ Rising stomach / smell / fear reported' : sessionCheck?.epilepsyCheck?.auras === 'no' ? 'No auras reported' : 'Not recorded'}
+                  </span>
+                </div>
+                <div className={`p-3 rounded-xl border ${sessionCheck?.epilepsyCheck?.prolongedWeakness === 'yes' ? 'bg-amber-50 border-amber-300 text-amber-950 font-bold' : 'bg-white border-slate-200'}`}>
+                  <span className="text-[11px] text-slate-500 block font-medium">Post-Seizure Weakness (Todd\'s)</span>
+                  <span className="text-sm block mt-0.5">
+                    {sessionCheck?.epilepsyCheck?.prolongedWeakness === 'yes' ? '⚠ Limb weakness > 1 hr' : sessionCheck?.epilepsyCheck?.prolongedWeakness === 'no' ? 'No lingering weakness' : 'Not recorded'}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {patient.condition === 'MS' && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className={`p-3 rounded-xl border ${sessionCheck?.msQuestions?.opticPain === 'yes' ? 'bg-amber-50 border-amber-300 text-amber-950 font-bold' : 'bg-white border-slate-200'}`}>
+                  <span className="text-[11px] text-slate-500 block font-medium">Optic Neuritis Indicator</span>
+                  <span className="text-sm block mt-0.5">
+                    {sessionCheck?.msQuestions?.opticPain === 'yes' ? '⚠ Eye pain on movement / sudden blur' : sessionCheck?.msQuestions?.opticPain === 'no' ? 'No eye pain or acute dimness' : 'Not recorded'}
+                  </span>
+                </div>
+                <div className={`p-3 rounded-xl border ${sessionCheck?.msQuestions?.bladder === 'yes' ? 'bg-amber-50 border-amber-300 text-amber-950 font-bold' : 'bg-white border-slate-200'}`}>
+                  <span className="text-[11px] text-slate-500 block font-medium">Neurogenic Bladder</span>
+                  <span className="text-sm block mt-0.5">
+                    {sessionCheck?.msQuestions?.bladder === 'yes' ? '⚠ Urgency / leakage / difficulty passing' : sessionCheck?.msQuestions?.bladder === 'no' ? 'Normal bladder control' : 'Not recorded'}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            <p className="text-[11px] text-slate-500 font-medium pt-1 border-t border-slate-200">
+              Community health worker and caregiver reported signs for receiving physician review.
             </p>
           </div>
         </div>
