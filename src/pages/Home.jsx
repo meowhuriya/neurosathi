@@ -14,7 +14,8 @@ import {
   ExternalLink,
   Phone,
   Check,
-  Award
+  Award,
+  MessageSquare
 } from 'lucide-react';
 import {
   LineChart,
@@ -29,6 +30,9 @@ import {
 import { evaluatePatientDecline, calculatePatientMetrics } from '../utils/scoring';
 import { getLatestReadings } from '../utils/readingsStorage';
 import { formatDate } from '../utils/formatters';
+import { PublicHealthCard } from '../components/PublicHealthCard';
+import { SmsPacketModal } from '../components/SmsPacketModal';
+import { ESanjeevaniModal } from '../components/ESanjeevaniModal';
 
 export function Home({
   t,
@@ -47,6 +51,8 @@ export function Home({
   const [viewDoctorSummaryPatient, setViewDoctorSummaryPatient] = useState(null);
   const [copiedSummary, setCopiedSummary] = useState(false);
   const [followUpVisitMsg, setFollowUpVisitMsg] = useState('');
+  const [showSmsModal, setShowSmsModal] = useState(false);
+  const [showESanjeevani, setShowESanjeevani] = useState(false);
 
   // Evaluate patients with decline detection
   const patientStats = useMemo(() => {
@@ -226,11 +232,16 @@ export function Home({
                 {cp.firstName[0]}
               </div>
               <div>
-                <h1 className="text-lg sm:text-xl font-bold text-slate-900 leading-tight">
-                  {cp.firstName} — ASHA Care Plan
-                </h1>
-                <p className="text-xs text-slate-500 font-medium">
-                  {cp.age} yrs • {cp.gender} • {cp.condition} • {cp.state}
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h1 className="text-lg sm:text-xl font-bold text-slate-900 leading-tight">
+                    {cp.firstName} — ASHA Care Plan
+                  </h1>
+                  <span className="bg-emerald-50 text-emerald-800 border border-emerald-200 px-2 py-0.5 rounded-full text-[11px] font-bold">
+                    {cp.schemeEligibility || 'PM-JAY Eligible'}
+                  </span>
+                </div>
+                <p className="text-xs text-slate-500 font-medium mt-0.5">
+                  {cp.age} yrs • {cp.gender} • {cp.condition} • {cp.state} • <span className="font-mono text-teal-700 font-bold">ABHA: {cp.abhaId || '91-4523-8819-2041'}</span>
                 </p>
               </div>
             </div>
@@ -378,6 +389,9 @@ export function Home({
             </button>
           </div>
         </div>
+
+        {/* Public Health Support, Zero-Literacy Pill Guide & Jan Aushadhi Generic Savings */}
+        <PublicHealthCard patient={cp} />
       </div>
     );
   }
@@ -414,7 +428,23 @@ export function Home({
               </p>
             </div>
 
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => setShowSmsModal(true)}
+                className="touch-target px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold flex items-center gap-1.5 shadow-xs"
+              >
+                <MessageSquare className="w-3.5 h-3.5 text-emerald-400" />
+                <span>📲 2G SMS Packet</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowESanjeevani(true)}
+                className="touch-target px-3 py-1.5 rounded-xl bg-teal-50 hover:bg-teal-100 text-teal-900 border border-teal-300 text-xs font-bold flex items-center gap-1.5"
+              >
+                <FileText className="w-3.5 h-3.5 text-teal-700" />
+                <span>📄 e-Sanjeevani Slip</span>
+              </button>
               <button
                 type="button"
                 onClick={() => window.print()}
@@ -463,10 +493,30 @@ export function Home({
                   <span className="font-bold text-slate-900 block">Readings (entered by user, not verified):</span>
                   <div className="text-xs text-slate-700 space-y-0.5">
                     {readings.date && <p>• Date: {formatDate(readings.date)}</p>}
-                    {(readings.systolic || readings.diastolic) && (
-                      <p>• Blood Pressure: {readings.systolic && readings.diastolic ? `${readings.systolic}/${readings.diastolic} mmHg` : readings.systolic ? `${readings.systolic} mmHg (systolic)` : `${readings.diastolic} mmHg (diastolic)`}</p>
-                    )}
-                    {readings.bloodSugar && <p>• Blood Sugar: {readings.bloodSugar} ({readings.bloodSugarContext || 'unknown'})</p>}
+                    {(readings.systolic || readings.diastolic) && (() => {
+                      const sys = Number(readings.systolic);
+                      const dia = Number(readings.diastolic);
+                      const isStage2HTN = (sys && sys >= 150) || (dia && dia >= 95);
+                      const isStage1HTN = !isStage2HTN && ((sys && sys >= 140) || (dia && dia >= 90));
+                      return (
+                        <p>
+                          • Blood Pressure: {readings.systolic && readings.diastolic ? `${readings.systolic}/${readings.diastolic} mmHg` : readings.systolic ? `${readings.systolic} mmHg (systolic)` : `${readings.diastolic} mmHg (diastolic)`}
+                          {isStage2HTN && <span className="text-red-700 font-bold ml-1.5">🚨 Stage 2 Hypertension (High Secondary Stroke Risk)</span>}
+                          {isStage1HTN && <span className="text-amber-700 font-bold ml-1.5">⚠️ Stage 1 Hypertension</span>}
+                        </p>
+                      );
+                    })()}
+                    {readings.bloodSugar && (() => {
+                      const bs = Number(readings.bloodSugar);
+                      const ctx = readings.bloodSugarContext || 'unknown';
+                      const isElevatedBS = bs && ((ctx === 'fasting' && bs >= 140) || (ctx === 'after meal' && bs >= 200) || (ctx === 'unknown' && bs >= 180));
+                      return (
+                        <p>
+                          • Blood Sugar: {readings.bloodSugar} ({readings.bloodSugarContext || 'unknown'})
+                          {isElevatedBS && <span className="text-amber-700 font-bold ml-1.5">⚠️ Elevated Blood Sugar</span>}
+                        </p>
+                      );
+                    })()}
                     {readings.weight && <p>• Weight: {readings.weight} kg</p>}
                   </div>
                 </div>
@@ -478,6 +528,18 @@ export function Home({
             </p>
           </div>
         </div>
+
+        {/* 2G SMS & e-Sanjeevani Modals */}
+        <SmsPacketModal
+          isOpen={showSmsModal}
+          onClose={() => setShowSmsModal(false)}
+          patient={p}
+        />
+        <ESanjeevaniModal
+          isOpen={showESanjeevani}
+          onClose={() => setShowESanjeevani(false)}
+          patient={p}
+        />
       </div>
     );
   }
@@ -678,10 +740,18 @@ export function Home({
               <div key={p.id} className="bg-white p-4 rounded-xl border border-red-200 shadow-xs space-y-2.5">
                 <div className="flex items-start justify-between">
                   <div>
-                    <span className="font-bold text-slate-900 text-base">{p.firstName}</span>
-                    <span className="text-xs text-slate-500 ml-1.5">({p.age}y, {p.condition} — {p.state})</span>
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="font-bold text-slate-900 text-base">{p.firstName}</span>
+                      <span className="bg-emerald-50 text-emerald-800 border border-emerald-200 text-[10px] font-bold px-1.5 py-0.5 rounded">
+                        {p.schemeEligibility || 'PM-JAY Eligible'}
+                      </span>
+                    </div>
+                    <span className="text-xs text-slate-500">({p.age}y, {p.condition} — {p.state})</span>
+                    <span className="text-[10px] text-teal-700 font-mono block font-semibold mt-0.5">
+                      ABHA: {p.abhaId || '91-4523-8819-2041'}
+                    </span>
                   </div>
-                  <span className="bg-red-600 text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full">
+                  <span className="bg-red-600 text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full shrink-0">
                     Needs doctor visit
                   </span>
                 </div>
@@ -754,8 +824,16 @@ export function Home({
                   title="Click to start 1 Check for this patient"
                 >
                   <td className="py-3.5 px-4">
-                    <span className="font-bold text-slate-900 block">{p.firstName}</span>
-                    <span className="text-[10px] text-slate-400 block">{p.id}</span>
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="font-bold text-slate-900">{p.firstName}</span>
+                      <span className="bg-emerald-50 text-emerald-800 border border-emerald-200 text-[10px] font-bold px-1.5 py-0.2 rounded">
+                        {p.schemeEligibility || 'PM-JAY'}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span className="text-[10px] text-slate-400 font-mono">{p.id}</span>
+                      <span className="text-[10px] text-teal-700 font-mono font-medium">ABHA: {p.abhaId || '91-4523-8819-2041'}</span>
+                    </div>
                   </td>
                   <td className="py-3.5 px-3 text-slate-600 font-medium">
                     {p.age}y / {p.gender[0]}

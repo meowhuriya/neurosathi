@@ -11,15 +11,21 @@ import {
   Copy,
   ChevronDown,
   ChevronUp,
-  HeartHandshake
+  HeartHandshake,
+  MessageSquare
 } from 'lucide-react';
 import { SAMPLE_HOSPITALS } from '../data/governmentSchemes';
 import { calculatePatientMetrics } from '../utils/scoring';
 import { getTypedNote } from '../utils/audioStorage';
+import { PublicHealthCard } from '../components/PublicHealthCard';
+import { SmsPacketModal } from '../components/SmsPacketModal';
+import { ESanjeevaniModal } from '../components/ESanjeevaniModal';
 
 export function FindCare({ t, activePatient, onUpdateFollowUp }) {
   const [showFullSummary, setShowFullSummary] = useState(false);
   const [copiedSummary, setCopiedSummary] = useState(false);
+  const [showSmsModal, setShowSmsModal] = useState(false);
+  const [showESanjeevani, setShowESanjeevani] = useState(false);
   const [visitStatus, setVisitStatus] = useState(
     activePatient?.followUp?.visitConfirmed ? 'yes' : null
   );
@@ -129,6 +135,27 @@ export function FindCare({ t, activePatient, onUpdateFollowUp }) {
           <span>Book free doctor consult</span>
           <ExternalLink className="w-5 h-5" />
         </a>
+
+        {/* Rapid Rural Triage & e-Sanjeevani Referral Slip Generators */}
+        <div className="pt-2 flex flex-col sm:flex-row gap-2.5">
+          <button
+            type="button"
+            onClick={() => setShowESanjeevani(true)}
+            className="touch-target flex-1 py-3 px-4 rounded-xl bg-white hover:bg-teal-50 text-teal-900 border border-teal-300 font-extrabold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer active:scale-98"
+          >
+            <FileText className="w-4 h-4 text-teal-700" />
+            <span>📄 Generate e-Sanjeevani Case Referral Slip</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setShowSmsModal(true)}
+            className="touch-target flex-1 py-3 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-md transition-all cursor-pointer active:scale-98"
+          >
+            <MessageSquare className="w-4 h-4 text-emerald-400" />
+            <span>📲 Generate 2G SMS Triage Packet</span>
+          </button>
+        </div>
       </div>
 
       {/* 2. DOCTOR SUMMARY FOR THE SAME PATIENT (Lakshmi) */}
@@ -272,6 +299,9 @@ export function FindCare({ t, activePatient, onUpdateFollowUp }) {
         </div>
       </div>
 
+      {/* Public Health Support, Zero-Literacy Pill Guide & Jan Aushadhi Generic Savings */}
+      <PublicHealthCard patient={activePatient} />
+
       {/* 4. "BEFORE YOUR VISIT" CHECKLIST */}
       <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-3">
         <h3 className="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-2">
@@ -399,6 +429,18 @@ export function FindCare({ t, activePatient, onUpdateFollowUp }) {
           </div>
         )}
       </div>
+
+      {/* e-Sanjeevani Referral & 2G SMS Packet Modals */}
+      <ESanjeevaniModal
+        isOpen={showESanjeevani}
+        onClose={() => setShowESanjeevani(false)}
+        patient={activePatient}
+      />
+      <SmsPacketModal
+        isOpen={showSmsModal}
+        onClose={() => setShowSmsModal(false)}
+        patient={activePatient}
+      />
     </div>
   );
 }

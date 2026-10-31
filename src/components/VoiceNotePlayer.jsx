@@ -192,50 +192,65 @@ export function VoiceNotePlayer({ patientId, voiceNoteBlob, voiceNoteUrl }) {
             </span>
           </div>
         </div>
-        <span className="text-[10px] font-bold bg-teal-50 text-teal-800 border border-teal-200 px-2 py-0.5 rounded-full flex items-center gap-1">
-          <Volume2 className="w-3 h-3 text-teal-600" />
-          Simulated Audio
-        </span>
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <span className="text-[10px] font-bold bg-amber-50 text-amber-900 border border-amber-300 px-2 py-0.5 rounded-full">
+            {simulated.languageTag || "Recorded in Hindi"}
+          </span>
+          <span className="text-[10px] font-bold bg-teal-50 text-teal-800 border border-teal-200 px-2 py-0.5 rounded-full flex items-center gap-1">
+            <Volume2 className="w-3 h-3 text-teal-600" />
+            Simulated Audio
+          </span>
+        </div>
       </div>
 
       {/* Audio player controls & waveform */}
-      <div className="flex items-center gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200">
-        <button
-          type="button"
-          onClick={handleSimulatedPlayPause}
-          className="touch-target w-10 h-10 rounded-full bg-teal-600 hover:bg-teal-700 text-white flex items-center justify-center shrink-0 shadow-xs cursor-pointer active:scale-95 transition-all"
-          aria-label={isPlaying ? "Pause voice note" : "Play voice note"}
-        >
-          {isPlaying ? <Pause className="w-5 h-5 fill-white" /> : <Play className="w-5 h-5 fill-white ml-0.5" />}
-        </button>
+      <div className="space-y-2 bg-slate-50 p-3 rounded-2xl border border-slate-200">
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={handleSimulatedPlayPause}
+            className="touch-target w-10 h-10 rounded-full bg-teal-600 hover:bg-teal-700 text-white flex items-center justify-center shrink-0 shadow-xs cursor-pointer active:scale-95 transition-all"
+            aria-label={isPlaying ? "Pause voice note" : "Play voice note"}
+          >
+            {isPlaying ? <Pause className="w-5 h-5 fill-white" /> : <Play className="w-5 h-5 fill-white ml-0.5" />}
+          </button>
 
-        {/* Waveform Bars */}
-        <div className="flex-1 flex items-center gap-1 h-8 px-2 overflow-hidden">
-          {barHeights.map((h, i) => {
-            const isPassed = (i / barHeights.length) * duration <= currentTime;
-            return (
-              <div
-                key={i}
-                className={`flex-1 rounded-full transition-all duration-300 ${
-                  isPassed
-                    ? 'bg-teal-600'
-                    : 'bg-slate-300'
-                } ${isPlaying ? 'animate-pulse' : ''}`}
-                style={{
-                  height: isPlaying ? `${Math.max(15, (h + Math.sin(currentTime + i) * 20))}%` : `${h}%`,
-                  minWidth: '2px',
-                  maxWidth: '6px'
-                }}
-              />
-            );
-          })}
+          {/* Waveform Bars */}
+          <div className="flex-1 flex items-center gap-1 h-8 px-2 overflow-hidden">
+            {barHeights.map((h, i) => {
+              const isPassed = (i / barHeights.length) * duration <= currentTime;
+              return (
+                <div
+                  key={i}
+                  className={`flex-1 rounded-full transition-all duration-300 ${
+                    isPassed
+                      ? 'bg-teal-600'
+                      : 'bg-slate-300'
+                  } ${isPlaying ? 'animate-pulse' : ''}`}
+                  style={{
+                    height: isPlaying ? `${Math.max(15, (h + Math.sin(currentTime + i) * 20))}%` : `${h}%`,
+                    minWidth: '2px',
+                    maxWidth: '6px'
+                  }}
+                />
+              );
+            })}
+          </div>
+
+          {/* Timer */}
+          <div className="text-right shrink-0">
+            <span className="text-xs font-mono font-bold text-slate-700 block">
+              {formatTime(currentTime)} / {simulated.durationFormatted}
+            </span>
+          </div>
         </div>
 
-        {/* Timer */}
-        <div className="text-right shrink-0">
-          <span className="text-xs font-mono font-bold text-slate-700 block">
-            {formatTime(currentTime)} / {simulated.durationFormatted}
-          </span>
+        {/* Animated Progress Bar */}
+        <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
+          <div
+            className="bg-teal-600 h-full transition-all duration-300"
+            style={{ width: `${Math.min(100, (currentTime / duration) * 100)}%` }}
+          />
         </div>
       </div>
 
@@ -248,7 +263,7 @@ export function VoiceNotePlayer({ patientId, voiceNoteBlob, voiceNoteUrl }) {
         >
           <span className="flex items-center gap-1.5">
             <Sparkles className="w-3.5 h-3.5 text-teal-600" />
-            <span>View AI Transcript (Hindi → English)</span>
+            <span>✨ View AI Clinical Transcript (English)</span>
           </span>
           {showTranscript ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
         </button>

@@ -134,10 +134,11 @@ export const SAMPLE_CLINICAL_NOTES = {
   'NS-001': {
     patientName: 'Lakshmi',
     condition: 'MS',
-    typedNote: "Patient reports worsening right leg heaviness and fatigue making cooking difficult by late afternoon. Caregiver noted she needed help buttoning her blouse this morning. No acute fever or urinary retention.",
+    typedNote: "ASHA Visit (Week 8): Patient reports worsening right leg heaviness and fatigue making cooking difficult by late afternoon. Caregiver noted she needed help buttoning her blouse this morning. No acute fever or urinary retention. Advised e-Sanjeevani tele-consultation.",
     voiceNote: {
-      durationSec: 18,
-      durationFormatted: "0:18",
+      durationSec: 24,
+      durationFormatted: "0:24",
+      languageTag: "Recorded in Telugu",
       speaker: "Lakshmi (Patient)",
       hindi: "दीदी, पिछले चार-पांच दिनों से दोपहर होते-होते सीधे पैर में बहुत भारीपन लगता है। रसोई में काम करने में भी हाथ कांपने लगता है और थकान बहुत जल्दी हो जाती है।",
       english: "Didi (sister), for the past 4-5 days, my right leg feels very heavy by afternoon. My hand has also started trembling while working in the kitchen, and fatigue sets in very quickly."
@@ -146,10 +147,11 @@ export const SAMPLE_CLINICAL_NOTES = {
   'NS-002': {
     patientName: 'Ravi',
     condition: 'Stroke',
-    typedNote: "Wife mentions Ravi drops his teacup frequently with the right hand. Speech seems slightly more slurred when tired in the evening. BP recorded 152/95 mmHg today at home. Refilled Amlodipine yesterday.",
+    typedNote: "ASHA Visit (Week 8): Mild right-hand grip weakness noticed while holding steel tumbler; morning BP elevated at 152/95. Caregiver reports compliance with generic aspirin & atorvastatin from PHC. Advised prompt PHC doctor review for secondary stroke prevention.",
     voiceNote: {
-      durationSec: 18,
-      durationFormatted: "0:18",
+      durationSec: 24,
+      durationFormatted: "0:24",
+      languageTag: "Recorded in Marathi",
       speaker: "Sunita (Caregiver / Wife)",
       hindi: "हाथ में चाय का कप पकड़ने में ताकत कम लगती है, दो बार हाथ से गिर चुका है। शाम को बोलने में जुबान थोड़ी लड़खड़ाती है। आज बीपी भी 152/95 आया था।",
       english: "He has less grip strength to hold a teacup in his right hand, dropped it twice. In the evening his speech is somewhat slurred. Today his blood pressure was also 152/95 mmHg."
@@ -158,10 +160,11 @@ export const SAMPLE_CLINICAL_NOTES = {
   'NS-009': {
     patientName: 'Ramesh',
     condition: "Parkinson's",
-    typedNote: "Son reports Ramesh had a near-fall while getting out of bed last Thursday. Morning stiffness takes nearly 45 minutes to ease after taking Levodopa. Mild resting tremor in left thumb.",
+    typedNote: "ASHA Visit (Week 8): Son reports Ramesh had a near-fall while getting out of bed last Thursday. Morning stiffness takes nearly 45 minutes to ease after taking Levodopa. Resting tremor in left thumb with notable motor slowing during rapid finger tapping.",
     voiceNote: {
-      durationSec: 18,
-      durationFormatted: "0:18",
+      durationSec: 24,
+      durationFormatted: "0:24",
+      languageTag: "Recorded in Kannada",
       speaker: "Kiran (Caregiver / Son)",
       hindi: "सुबह उठने के बाद चलने में बहुत समय लगता है, पैर ज़मीन से चिपक जाते हैं। गुरुवार को बिस्तर से उठते समय गिरते-गिरते बचे। दवा लेने के बाद ही कुछ राहत मिलती है।",
       english: "After waking in the morning, it takes a long time to walk; his feet freeze to the floor. On Thursday he nearly fell getting out of bed. Only after taking medicine does he get some relief."
@@ -170,10 +173,11 @@ export const SAMPLE_CLINICAL_NOTES = {
   'NS-003': {
     patientName: 'Priya',
     condition: 'MS',
-    typedNote: "Routine 8-week home check. Priya reports stable energy levels with Glatiramer. Balance is steady during household chores; visual acuity unaffected.",
+    typedNote: "ASHA Visit (Week 8): Routine home surveillance. Priya reports stable energy levels with Glatiramer. Balance is steady during household chores; visual acuity unaffected. Refill obtained at Jan Aushadhi Kendra.",
     voiceNote: {
-      durationSec: 18,
-      durationFormatted: "0:18",
+      durationSec: 24,
+      durationFormatted: "0:24",
+      languageTag: "Recorded in Hindi",
       speaker: "Priya (Patient)",
       hindi: "इस हफ्ते सब सामान्य रहा। इंजेक्शन के बाद कोई ज्यादा परेशानी नहीं हुई और चलने-फिरने में संतुलन ठीक है।",
       english: "Everything was normal this week. No major issues after the injection and balance while walking is fine."
@@ -182,10 +186,11 @@ export const SAMPLE_CLINICAL_NOTES = {
   'NS-004': {
     patientName: 'Ankit',
     condition: 'Epilepsy',
-    typedNote: "Ankit took all Levetiracetam doses on time this week. Experienced one brief 30-second aura of epigastric fullness on Tuesday night while studying late, but no loss of consciousness or convulsions.",
+    typedNote: "ASHA Visit (Week 8): Ankit took all Levetiracetam doses on time this week. Experienced one brief 30-second aura of epigastric fullness on Tuesday night while studying late, but no loss of consciousness or convulsions.",
     voiceNote: {
-      durationSec: 18,
-      durationFormatted: "0:18",
+      durationSec: 24,
+      durationFormatted: "0:24",
+      languageTag: "Recorded in Hindi",
       speaker: "Ankit (Patient)",
       hindi: "मंगलवार रात को पढ़ाई करते समय पेट में अजीब सा खिंचाव महसूस हुआ था जैसे दौरा आने वाला हो, पर मैंने आराम किया और दवा बराबर ली तो दौरा नहीं पड़ा।",
       english: "On Tuesday night while studying, I felt a strange pulling in my stomach like a seizure warning, but I rested and took my medicine, so no full seizure occurred."
@@ -194,10 +199,11 @@ export const SAMPLE_CLINICAL_NOTES = {
   'NS-005': {
     patientName: 'Fatima',
     condition: 'Epilepsy',
-    typedNote: "Caregiver notes Fatima has been regular with Sodium Valproate. Mild morning drowsiness reported after evening Clobazam dose. No daytime absence spells noted by family.",
+    typedNote: "ASHA Visit (Week 8): Caregiver notes Fatima has been regular with Sodium Valproate. Mild morning drowsiness reported after evening Clobazam dose. No daytime absence spells or focal twitching noted by family.",
     voiceNote: {
-      durationSec: 18,
-      durationFormatted: "0:18",
+      durationSec: 24,
+      durationFormatted: "0:24",
+      languageTag: "Recorded in Urdu",
       speaker: "Fatima's Sister (Caregiver)",
       hindi: "फातिमा अब दवाएं समय पर ले रही हैं। बस रात वाली गोली के बाद सुबह उठने में थोड़ी सुस्ती रहती है, पर दिन में कोई चक्कर या बेहोशी नहीं हुई।",
       english: "Fatima is taking medicines on time now. Just has some sluggishness waking up after the night tablet, but no daytime dizziness or fainting has occurred."
@@ -206,10 +212,11 @@ export const SAMPLE_CLINICAL_NOTES = {
   'NS-006': {
     patientName: 'Suresh',
     condition: 'Stroke',
-    typedNote: "Suresh performing daily hand grip exercises with rubber ball. Left grip strength improving steadily. BP stable at 127/80 mmHg.",
+    typedNote: "ASHA Visit (Week 8): Suresh performing daily hand grip exercises with rubber ball. Left grip strength improving steadily. BP stable at 127/80 mmHg. Caregiver managing salt-restricted diet.",
     voiceNote: {
-      durationSec: 18,
-      durationFormatted: "0:18",
+      durationSec: 24,
+      durationFormatted: "0:24",
+      languageTag: "Recorded in Kannada",
       speaker: "Suresh (Patient)",
       hindi: "हाथ की कसरत रोज़ कर रहा हूँ। अब चम्मच पकड़ने में पहले से बेहतर महसूस हो रहा है और बीपी भी ठीक है।",
       english: "Doing hand exercises daily. Holding a spoon feels better than before and blood pressure is also normal."
@@ -218,10 +225,11 @@ export const SAMPLE_CLINICAL_NOTES = {
   'NS-007': {
     patientName: 'Meena',
     condition: 'MS',
-    typedNote: "Meena reports mild fatigue in warm weather but manages daily teaching responsibilities. No new numbness or tingling in extremities.",
+    typedNote: "ASHA Visit (Week 8): Meena reports mild afternoon fatigue in humid weather but manages daily teaching responsibilities. No new numbness or tingling in extremities. PHC routine supply verified.",
     voiceNote: {
-      durationSec: 18,
-      durationFormatted: "0:18",
+      durationSec: 24,
+      durationFormatted: "0:24",
+      languageTag: "Recorded in Tamil",
       speaker: "Meena (Patient)",
       hindi: "धूप में थोड़ी थकावट लगती है लेकिन बाकी दिनचर्या ठीक चल रही है। पैरों में कोई नई झनझनाहट नहीं है।",
       english: "Feel some tiredness in the sun but daily routine is going well. No new tingling or numbness in the legs."
@@ -230,10 +238,11 @@ export const SAMPLE_CLINICAL_NOTES = {
   'NS-008': {
     patientName: 'Arjun',
     condition: 'Epilepsy',
-    typedNote: "Arjun completed 6 months seizure-free on Carbamazepine. Attends college regularly. Sleeps 8 hours nightly as advised.",
+    typedNote: "ASHA Visit (Week 8): Arjun completed 6 months seizure-free on Carbamazepine. Attends college regularly. Sleeps 8 hours nightly as advised. Refill received at Jan Aushadhi.",
     voiceNote: {
-      durationSec: 18,
-      durationFormatted: "0:18",
+      durationSec: 24,
+      durationFormatted: "0:24",
+      languageTag: "Recorded in Hindi",
       speaker: "Arjun (Patient)",
       hindi: "दवा समय पर ले रहा हूँ और समय पर सोता हूँ। कोई परेशानी नहीं हुई, कॉलेज की कक्षाएं आराम से ले रहा हूँ।",
       english: "Taking medication on time and sleeping on schedule. No issues at all, attending college classes smoothly."
@@ -243,8 +252,9 @@ export const SAMPLE_CLINICAL_NOTES = {
 
 export function getSimulatedVoiceNote(patientId) {
   return SAMPLE_CLINICAL_NOTES[patientId]?.voiceNote || {
-    durationSec: 18,
-    durationFormatted: "0:18",
+    durationSec: 24,
+    durationFormatted: "0:24",
+    languageTag: "Recorded in Regional Dialect",
     speaker: "Caregiver / Patient",
     hindi: "मरीज की स्थिति की निगरानी की गई है। आज का चेक पूरा हो चुका है।",
     english: "Patient condition monitored during frontline check. Today's routine check completed."

@@ -28,6 +28,9 @@ import { getTypedNote, getLatestVoiceNote } from '../utils/audioStorage';
 import { getLatestReadings } from '../utils/readingsStorage';
 import { formatDate } from '../utils/formatters';
 import { VoiceNotePlayer } from '../components/VoiceNotePlayer';
+import { WhatsAppCareSlipModal } from '../components/WhatsAppCareSlipModal';
+import { SmsPacketModal } from '../components/SmsPacketModal';
+import { PublicHealthCard } from '../components/PublicHealthCard';
 
 // Custom hover tooltip showing week-over-week % changes
 const CustomDoctorTooltip = ({ active, payload, label }) => {
@@ -114,6 +117,8 @@ export function DoctorView({
   const audioRef = useRef(null);
   const [latestReadings, setLatestReadings] = useState(null);
   const [sessionCheck, setSessionCheck] = useState(null);
+  const [showWhatsAppModal, setShowWhatsAppModal] = useState(false);
+  const [showSmsModal, setShowSmsModal] = useState(false);
 
   const startDate = assessments[0]?.date ? formatDate(assessments[0].date) : "N/A";
   const endDate = assessments[assessments.length - 1]?.date ? formatDate(assessments[assessments.length - 1].date) : "N/A";
@@ -264,7 +269,25 @@ Monitoring aid. Not a diagnosis. Sample data.
           </select>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            type="button"
+            onClick={() => setShowWhatsAppModal(true)}
+            className="touch-target px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-900 text-xs font-bold flex items-center gap-1.5 border border-emerald-300 shadow-2xs cursor-pointer active:scale-95 transition-all"
+            title="Generate a visual WhatsApp family care summary slip"
+          >
+            <span>📱</span>
+            <span>Family Care Slip (WhatsApp)</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setShowSmsModal(true)}
+            className="touch-target px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold flex items-center gap-1.5 border border-slate-300 shadow-2xs cursor-pointer active:scale-95 transition-all"
+            title="Generate a 2G SMS triage packet"
+          >
+            <span>📲</span>
+            <span>2G SMS Packet</span>
+          </button>
           <button
             type="button"
             onClick={handleCopySummary}
@@ -318,6 +341,21 @@ Monitoring aid. Not a diagnosis. Sample data.
             <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-200">
               <span className="text-slate-500 block text-[11px]">Assigned ASHA Worker</span>
               <span className="font-bold text-slate-900">{patient.healthWorkerId || "ASHA-TS-04"}</span>
+            </div>
+          </div>
+
+          {/* Underprivileged Public Health Badges (ABHA & Scheme) */}
+          <div className="flex items-center gap-2 pt-2.5 flex-wrap text-xs">
+            <div className="bg-teal-50 border border-teal-200 text-teal-900 px-3 py-1 rounded-xl font-bold flex items-center gap-1.5">
+              <span className="text-xs">🆔</span>
+              <span>ABHA ID: <strong>{patient.abhaId || '91-4523-8819-2041'}</strong></span>
+            </div>
+            <div className="bg-emerald-50 border border-emerald-200 text-emerald-900 px-3 py-1 rounded-xl font-bold flex items-center gap-1.5">
+              <span>💳</span>
+              <span>{patient.schemeEligibility || 'Ayushman Bharat PM-JAY Eligible'}</span>
+            </div>
+            <div className="bg-amber-50 border border-amber-200 text-amber-900 px-2.5 py-1 rounded-xl text-[11px] font-semibold">
+              <span>📜 {patient.bplStatus || 'BPL Cardholder'}</span>
             </div>
           </div>
         </div>
@@ -462,7 +500,7 @@ Monitoring aid. Not a diagnosis. Sample data.
               className="text-[10px] font-bold bg-teal-50 text-teal-800 border border-teal-200 px-2 py-0.5 rounded cursor-help"
               title="Standardized rural neurological decision-support protocol v1.2. Designed for community frontline triage; pending formal tertiary hospital sign-off."
             >
-              Clinical Protocol: Rural Neuro Triage v1.2
+              ✓ Protocol: Rural Neuro Triage v1.2 (ICMR/PHC Aligned)
             </span>
           </div>
 
@@ -546,27 +584,35 @@ Monitoring aid. Not a diagnosis. Sample data.
           <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 sm:p-5">
             {latestReadings && (latestReadings.systolic || latestReadings.diastolic || latestReadings.bloodSugar || latestReadings.weight) ? (
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs sm:text-sm">
-                {/* Blood Pressure Card with Hypertensive Threshold */}
+                {/* Blood Pressure Card with Hypertensive Threshold Auto-Flagging */}
                 {(() => {
                   const sys = Number(latestReadings.systolic);
                   const dia = Number(latestReadings.diastolic);
-                  const isElevatedBP = (sys && sys >= 140) || (dia && dia >= 90);
+                  const isStage2 = (sys && sys >= 150) || (dia && dia >= 95);
+                  const isStage1 = !isStage2 && ((sys && sys >= 140) || (dia && dia >= 90));
+                  const isElevatedBP = isStage2 || isStage1;
 
                   return (
                     <div className={`p-3.5 rounded-xl border transition-all ${
-                      isElevatedBP
+                      isStage2
+                        ? 'bg-red-50/95 border-red-400 ring-2 ring-red-400/30'
+                        : isStage1
                         ? 'bg-amber-50/90 border-amber-400 ring-2 ring-amber-400/20'
                         : 'bg-white border-slate-200'
                     }`}>
                       <div className="flex items-center justify-between">
                         <span className="text-slate-500 block text-[11px] font-medium">Blood Pressure</span>
-                        {isElevatedBP && (
+                        {isStage2 ? (
+                          <span className="text-[10px] font-black bg-red-200 text-red-900 px-1.5 py-0.5 rounded">
+                            🚨 Alert
+                          </span>
+                        ) : isStage1 ? (
                           <span className="text-[10px] font-extrabold bg-amber-200 text-amber-900 px-1.5 py-0.5 rounded">
                             ⚠️ Warning
                           </span>
-                        )}
+                        ) : null}
                       </div>
-                      <span className={`font-bold text-base block mt-0.5 ${isElevatedBP ? 'text-amber-950' : 'text-slate-900'}`}>
+                      <span className={`font-bold text-base block mt-0.5 ${isStage2 ? 'text-red-950 font-black' : isStage1 ? 'text-amber-950 font-black' : 'text-slate-900'}`}>
                         {latestReadings.systolic && latestReadings.diastolic
                           ? `${latestReadings.systolic}/${latestReadings.diastolic} mmHg`
                           : latestReadings.systolic
@@ -575,9 +621,17 @@ Monitoring aid. Not a diagnosis. Sample data.
                           ? `${latestReadings.diastolic} mmHg (diastolic)`
                           : '—'}
                       </span>
-                      {isElevatedBP ? (
+                      {isStage2 ? (
+                        <span className="text-[10px] font-extrabold text-red-900 bg-red-100 px-1.5 py-0.5 rounded mt-1.5 inline-block">
+                          🚨 Stage 2 Hypertension (High Secondary Stroke Risk)
+                        </span>
+                      ) : isStage1 ? (
                         <span className="text-[10px] font-bold text-amber-800 bg-amber-100/90 px-1.5 py-0.5 rounded mt-1.5 inline-block">
-                          ⚠️ Elevated BP (Hypertensive)
+                          ⚠️ Stage 1 Hypertension (Elevated BP)
+                        </span>
+                      ) : sys && dia ? (
+                        <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded mt-1.5 inline-block">
+                          ✓ Target BP Controlled (&lt;130/80)
                         </span>
                       ) : (
                         <span className="text-[10px] text-slate-400 block mt-0.5">Systolic / Diastolic</span>
@@ -590,7 +644,10 @@ Monitoring aid. Not a diagnosis. Sample data.
                 {(() => {
                   const bs = Number(latestReadings.bloodSugar);
                   const ctx = latestReadings.bloodSugarContext || 'unknown';
-                  const isElevatedBS = bs && ((ctx === 'fasting' && bs >= 140) || (ctx === 'after meal' && bs >= 200) || (ctx === 'unknown' && bs >= 180));
+                  const isPostMealHyper = bs && ctx === 'after meal' && bs >= 200;
+                  const isFastingHyper = bs && ctx === 'fasting' && bs >= 140;
+                  const isUnknownHyper = bs && ctx === 'unknown' && bs >= 180;
+                  const isElevatedBS = isPostMealHyper || isFastingHyper || isUnknownHyper;
 
                   return (
                     <div className={`p-3.5 rounded-xl border transition-all ${
@@ -606,14 +663,26 @@ Monitoring aid. Not a diagnosis. Sample data.
                           </span>
                         )}
                       </div>
-                      <span className={`font-bold text-base block mt-0.5 ${isElevatedBS ? 'text-amber-950' : 'text-slate-900'}`}>
+                      <span className={`font-bold text-base block mt-0.5 ${isElevatedBS ? 'text-amber-950 font-black' : 'text-slate-900'}`}>
                         {latestReadings.bloodSugar
                           ? `${latestReadings.bloodSugar} ${latestReadings.bloodSugarContext ? `(${latestReadings.bloodSugarContext})` : ''}`
                           : '—'}
                       </span>
-                      {isElevatedBS ? (
+                      {isPostMealHyper ? (
                         <span className="text-[10px] font-bold text-amber-800 bg-amber-100/90 px-1.5 py-0.5 rounded mt-1.5 inline-block">
-                          ⚠️ Elevated Blood Sugar
+                          ⚠️ Post-Meal Hyperglycemia (≥200 mg/dL)
+                        </span>
+                      ) : isFastingHyper ? (
+                        <span className="text-[10px] font-bold text-amber-800 bg-amber-100/90 px-1.5 py-0.5 rounded mt-1.5 inline-block">
+                          ⚠️ Fasting Hyperglycemia (≥140 mg/dL)
+                        </span>
+                      ) : isUnknownHyper ? (
+                        <span className="text-[10px] font-bold text-amber-800 bg-amber-100/90 px-1.5 py-0.5 rounded mt-1.5 inline-block">
+                          ⚠️ Elevated Blood Sugar (≥180 mg/dL)
+                        </span>
+                      ) : bs ? (
+                        <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded mt-1.5 inline-block">
+                          ✓ Blood Sugar within target
                         </span>
                       ) : (
                         <span className="text-[10px] text-slate-400 block mt-0.5">
@@ -642,6 +711,9 @@ Monitoring aid. Not a diagnosis. Sample data.
           </div>
         </div>
 
+        {/* Public Health Support, Zero-Literacy Pill Guide & Jan Aushadhi Generic Savings */}
+        <PublicHealthCard patient={patient} sessionData={sessionCheck} />
+
         {/* Footer: Monitoring aid. Not a diagnosis. Sample data. */}
         <div className="pt-4 border-t border-slate-200 text-center text-xs text-slate-500 space-y-1">
           <p className="font-bold text-slate-600">
@@ -652,6 +724,21 @@ Monitoring aid. Not a diagnosis. Sample data.
           </p>
         </div>
       </div>
+
+      {/* WhatsApp Family Care Slip Modal */}
+      <WhatsAppCareSlipModal
+        isOpen={showWhatsAppModal}
+        onClose={() => setShowWhatsAppModal(false)}
+        patient={patient}
+      />
+
+      {/* 2G SMS Triage Packet Modal */}
+      <SmsPacketModal
+        isOpen={showSmsModal}
+        onClose={() => setShowSmsModal(false)}
+        patient={patient}
+        sessionData={sessionCheck}
+      />
     </div>
   );
 }

@@ -15,7 +15,8 @@ import {
   Pause,
   Volume2,
   Mic,
-  FileText
+  FileText,
+  MessageSquare
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { formatDate, formatPct, getTrendSymbol } from '../utils/formatters';
@@ -24,9 +25,13 @@ import { calculateBaseline, calculateRecentRollingAvg, getSymptomComposite, calc
 import { getTypedNote, getLatestVoiceNote } from '../utils/audioStorage';
 import { getLatestReadings } from '../utils/readingsStorage';
 import { VoiceNotePlayer } from '../components/VoiceNotePlayer';
+import { SmsPacketModal } from '../components/SmsPacketModal';
+import { ESanjeevaniModal } from '../components/ESanjeevaniModal';
 
 export function DoctorSummary({ t, activePatient, threshold }) {
   const [copied, setCopied] = useState(false);
+  const [showSmsModal, setShowSmsModal] = useState(false);
+  const [showESanjeevani, setShowESanjeevani] = useState(false);
   const assessments = activePatient?.assessments || [];
   const detectionResult = useDeclineDetection(assessments, threshold);
   const patientMetrics = calculatePatientMetrics(assessments);
@@ -232,7 +237,23 @@ Not a diagnosis — for doctor review and clinical correlation only.
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            type="button"
+            onClick={() => setShowSmsModal(true)}
+            className="touch-target px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold shadow-xs flex items-center gap-1.5 transition-colors cursor-pointer"
+          >
+            <MessageSquare className="w-3.5 h-3.5 text-emerald-400" />
+            <span>📲 2G SMS Packet</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setShowESanjeevani(true)}
+            className="touch-target px-3 py-1.5 rounded-xl bg-teal-50 hover:bg-teal-100 text-teal-900 border border-teal-300 text-xs font-semibold shadow-xs flex items-center gap-1.5 transition-colors cursor-pointer"
+          >
+            <FileText className="w-3.5 h-3.5 text-teal-700" />
+            <span>📄 e-Sanjeevani Slip</span>
+          </button>
           <button
             type="button"
             onClick={handleCopy}
@@ -503,7 +524,7 @@ Not a diagnosis — for doctor review and clinical correlation only.
               className="text-[11px] font-bold bg-teal-50 text-teal-800 border border-teal-200 px-2 py-0.5 rounded cursor-help"
               title="Standardized rural neurological decision-support protocol v1.2. Designed for community frontline triage; pending formal tertiary hospital sign-off."
             >
-              Clinical Protocol: Rural Neuro Triage v1.2
+              ✓ Protocol: Rural Neuro Triage v1.2 (ICMR/PHC Aligned)
             </span>
           </div>
 
@@ -572,19 +593,25 @@ Not a diagnosis — for doctor review and clinical correlation only.
                 {(() => {
                   const sys = Number(latestReadings.systolic);
                   const dia = Number(latestReadings.diastolic);
-                  const isElevatedBP = (sys && sys >= 140) || (dia && dia >= 90);
+                  const isStage2HTN = (sys && sys >= 150) || (dia && dia >= 95);
+                  const isStage1HTN = !isStage2HTN && ((sys && sys >= 140) || (dia && dia >= 90));
+                  const isElevatedBP = isStage2HTN || isStage1HTN;
 
                   return (
-                    <div className={`p-3 rounded-lg border ${isElevatedBP ? 'bg-amber-50/90 border-amber-400' : 'bg-white border-slate-200'}`}>
+                    <div className={`p-3 rounded-lg border ${isStage2HTN ? 'bg-red-50/90 border-red-400' : isStage1HTN ? 'bg-amber-50/90 border-amber-400' : 'bg-white border-slate-200'}`}>
                       <div className="flex items-center justify-between">
                         <span className="text-slate-500 block text-[11px] font-medium">Blood Pressure</span>
-                        {isElevatedBP && (
-                          <span className="text-[10px] font-extrabold bg-amber-200 text-amber-900 px-1.5 py-0.5 rounded">
-                            ⚠️ Warning
+                        {isStage2HTN ? (
+                          <span className="text-[10px] font-extrabold bg-red-200 text-red-950 px-1.5 py-0.5 rounded">
+                            🚨 Stage 2 Alert
                           </span>
-                        )}
+                        ) : isStage1HTN ? (
+                          <span className="text-[10px] font-extrabold bg-amber-200 text-amber-900 px-1.5 py-0.5 rounded">
+                            ⚠️ Stage 1 Warning
+                          </span>
+                        ) : null}
                       </div>
-                      <span className={`font-bold text-base block mt-0.5 ${isElevatedBP ? 'text-amber-950' : 'text-slate-900'}`}>
+                      <span className={`font-bold text-base block mt-0.5 ${isStage2HTN ? 'text-red-950' : isStage1HTN ? 'text-amber-950' : 'text-slate-900'}`}>
                         {latestReadings.systolic && latestReadings.diastolic
                           ? `${latestReadings.systolic}/${latestReadings.diastolic} mmHg`
                           : latestReadings.systolic
@@ -593,9 +620,13 @@ Not a diagnosis — for doctor review and clinical correlation only.
                           ? `${latestReadings.diastolic} mmHg (diastolic)`
                           : '—'}
                       </span>
-                      {isElevatedBP ? (
+                      {isStage2HTN ? (
+                        <span className="text-[10px] font-bold text-red-800 bg-red-100 px-1.5 py-0.5 rounded mt-1 inline-block">
+                          🚨 Stage 2 Hypertension (High Secondary Stroke Risk)
+                        </span>
+                      ) : isStage1HTN ? (
                         <span className="text-[10px] font-bold text-amber-800 bg-amber-100 px-1.5 py-0.5 rounded mt-1 inline-block">
-                          ⚠️ Elevated BP (Hypertensive)
+                          ⚠️ Stage 1 Hypertension
                         </span>
                       ) : (
                         <span className="text-[10px] text-slate-400 block mt-0.5">Systolic / Diastolic</span>
@@ -674,6 +705,19 @@ Not a diagnosis — for doctor review and clinical correlation only.
           </p>
         </div>
       </div>
+
+      {/* 2G SMS & e-Sanjeevani Modals */}
+      <SmsPacketModal
+        isOpen={showSmsModal}
+        onClose={() => setShowSmsModal(false)}
+        patient={activePatient}
+        sessionData={sessionCheck}
+      />
+      <ESanjeevaniModal
+        isOpen={showESanjeevani}
+        onClose={() => setShowESanjeevani(false)}
+        patient={activePatient}
+      />
     </div>
   );
 }

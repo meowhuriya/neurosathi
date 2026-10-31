@@ -45,15 +45,30 @@ export function App() {
   // Current translation strings with fallback
   const t = translations[currentLang] || translations.en;
 
-  // Ensure newly added sample patients (like NS-009) are available even if localStorage had an older snapshot
+  // Ensure newly added sample patients and public health attributes (ABHA ID, PM-JAY) are backfilled
   useEffect(() => {
     setPatients(prev => {
-      const existingIds = new Set(prev.map(p => p.id));
+      const sampleMap = new Map(SAMPLE_PATIENTS.map(p => [p.id, p]));
+      const updated = prev.map(p => {
+        const sample = sampleMap.get(p.id);
+        if (sample && (!p.abhaId || !p.schemeEligibility)) {
+          return {
+            ...p,
+            abhaId: p.abhaId || sample.abhaId,
+            pmjayId: p.pmjayId || sample.pmjayId,
+            schemeEligibility: p.schemeEligibility || sample.schemeEligibility,
+            bplStatus: p.bplStatus || sample.bplStatus
+          };
+        }
+        return p;
+      });
+
+      const existingIds = new Set(updated.map(p => p.id));
       const missing = SAMPLE_PATIENTS.filter(p => !existingIds.has(p.id));
       if (missing.length > 0) {
-        return [...prev, ...missing];
+        return [...updated, ...missing];
       }
-      return prev;
+      return updated;
     });
   }, []);
 

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   LineChart,
@@ -11,11 +11,12 @@ import {
   ReferenceLine,
   Legend
 } from 'recharts';
-import { Sliders, AlertTriangle, CheckCircle2, ArrowRight, Phone, ExternalLink } from 'lucide-react';
+import { Sliders, AlertTriangle, CheckCircle2, ArrowRight, Phone, ExternalLink, MessageSquare } from 'lucide-react';
 import { calculatePatientMetrics, calculateBaseline } from '../utils/scoring';
 import { useDeclineDetection } from '../hooks/useDeclineDetection';
 import { ListenButton } from '../components/ListenButton';
 import { TakeAMomentCard } from '../components/TakeAMomentCard';
+import { SmsPacketModal } from '../components/SmsPacketModal';
 
 // CLINICAL THRESHOLD: Decline flagged when 3-week rolling average drops >threshold below baseline on ≥2 measures. Configurable by clinical advisor. Not clinically validated.
 
@@ -35,6 +36,7 @@ export function Results({ t, currentLang = 'en', activePatient, threshold = 0.20
   const condition = patient.condition || 'MS';
   const assessments = patient.assessments || [];
   const detectionResult = useDeclineDetection(assessments, currentThreshold);
+  const [showSmsModal, setShowSmsModal] = useState(false);
 
   // Check if session assessment was completed
   const sessionCheck = (() => {
@@ -479,7 +481,7 @@ export function Results({ t, currentLang = 'en', activePatient, threshold = 0.20
                 className="text-[11px] font-bold bg-teal-50 text-teal-800 border border-teal-200 px-2.5 py-0.5 rounded cursor-help"
                 title="Standardized rural neurological decision-support protocol v1.2. Designed for community frontline triage; pending formal tertiary hospital sign-off."
               >
-                Clinical Protocol: Rural Neuro Triage v1.2
+                ✓ Protocol: Rural Neuro Triage v1.2 (ICMR/PHC Aligned)
               </span>
             </div>
 
@@ -506,11 +508,20 @@ export function Results({ t, currentLang = 'en', activePatient, threshold = 0.20
             </div>
           </div>
 
-          <div className="pt-2">
+          <div className="pt-2 flex flex-col sm:flex-row gap-3">
+            <button
+              type="button"
+              onClick={() => setShowSmsModal(true)}
+              className="touch-target py-3.5 px-5 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-sm sm:text-base flex items-center justify-center gap-2.5 shadow-md transition-all cursor-pointer active:scale-98"
+            >
+              <MessageSquare className="w-5 h-5 text-emerald-400" />
+              <span>📲 Generate 2G SMS Triage Packet</span>
+            </button>
+
             <button
               type="button"
               onClick={() => navigate('/connect')}
-              className="touch-target w-full py-4 px-6 rounded-2xl bg-teal-600 hover:bg-teal-700 active:scale-[0.99] text-white text-base sm:text-lg font-bold shadow-lg shadow-teal-700/20 flex items-center justify-center gap-3 transition-all cursor-pointer"
+              className="touch-target flex-1 py-4 px-6 rounded-2xl bg-teal-600 hover:bg-teal-700 active:scale-[0.99] text-white text-base sm:text-lg font-bold shadow-lg shadow-teal-700/20 flex items-center justify-center gap-3 transition-all cursor-pointer"
             >
               <span>Proceed to Step 3: Connect</span>
               <ArrowRight className="w-5 h-5 shrink-0" />
@@ -724,11 +735,20 @@ export function Results({ t, currentLang = 'en', activePatient, threshold = 0.20
           )}
 
           {/* Button to Proceed to Step 3 Connect */}
-          <div className="pt-2">
+          <div className="pt-2 flex flex-col sm:flex-row gap-3">
+            <button
+              type="button"
+              onClick={() => setShowSmsModal(true)}
+              className="touch-target py-3.5 px-5 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-sm sm:text-base flex items-center justify-center gap-2.5 shadow-md transition-all cursor-pointer active:scale-98"
+            >
+              <MessageSquare className="w-5 h-5 text-emerald-400" />
+              <span>📲 Generate 2G SMS Triage Packet</span>
+            </button>
+
             <button
               type="button"
               onClick={() => navigate('/connect')}
-              className="touch-target w-full py-4 px-6 rounded-2xl bg-teal-600 hover:bg-teal-700 active:scale-[0.99] text-white text-base sm:text-lg font-bold shadow-lg shadow-teal-700/20 flex items-center justify-center gap-3 transition-all cursor-pointer"
+              className="touch-target flex-1 py-4 px-6 rounded-2xl bg-teal-600 hover:bg-teal-700 active:scale-[0.99] text-white text-base sm:text-lg font-bold shadow-lg shadow-teal-700/20 flex items-center justify-center gap-3 transition-all cursor-pointer"
             >
               <span>Proceed to Step 3: Connect</span>
               <ArrowRight className="w-5 h-5 shrink-0" />
@@ -736,6 +756,19 @@ export function Results({ t, currentLang = 'en', activePatient, threshold = 0.20
           </div>
         </div>
       )}
+
+      {/* 2G SMS Triage Packet Modal */}
+      <SmsPacketModal
+        isOpen={showSmsModal}
+        onClose={() => setShowSmsModal(false)}
+        patient={patient}
+        sessionData={{
+          isUrgent,
+          readings: sessionCheck?.readings,
+          motor: sessionCheck?.motor,
+          processing: sessionCheck?.processing
+        }}
+      />
     </div>
   );
 }

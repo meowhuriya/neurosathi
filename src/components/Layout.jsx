@@ -18,6 +18,13 @@ export function Layout({
   const navigate = useNavigate();
   const location = useLocation();
   const [isDemoActive, setIsDemoActive] = useState(false);
+  const [isOfflineMode, setIsOfflineMode] = useState(() => {
+    try {
+      return localStorage.getItem('neurosathi_offline_mode') === 'true';
+    } catch {
+      return false;
+    }
+  });
   const activePatient = patients.find(p => p.id === activePatientId) || patients[0];
 
   const isRoleSelectionPage = location.pathname === '/' || location.pathname === '/roles';
@@ -57,6 +64,29 @@ export function Layout({
         <span aria-hidden="true">⚕️</span>
         <span>{t?.app?.sampleBanner || "⚕️ SAMPLE DATA — Not for clinical use"}</span>
       </div>
+
+      {/* Offline Village Mode Comforting Banner */}
+      {isOfflineMode && (
+        <div 
+          className="bg-amber-100/95 border-b border-amber-300 text-amber-950 text-xs sm:text-sm font-semibold px-3 py-2 text-center flex items-center justify-center gap-2 shadow-xs shrink-0 z-40 animate-fadeIn"
+          role="status"
+        >
+          <span className="text-base" aria-hidden="true">📴</span>
+          <span>
+            <strong>Offline Village Mode Active:</strong> All checks, voice notes, and vitals are saved locally on this device and will auto-sync at the PHC.
+          </span>
+          <button
+            type="button"
+            onClick={() => {
+              setIsOfflineMode(false);
+              localStorage.setItem('neurosathi_offline_mode', 'false');
+            }}
+            className="touch-target text-[11px] font-bold underline ml-1 text-amber-900 hover:text-black cursor-pointer"
+          >
+            Switch to Online
+          </button>
+        </div>
+      )}
 
       {/* Top Navigation Bar */}
       <header className="app-header bg-white border-b border-slate-200 sticky top-0 z-30 shadow-xs">
@@ -179,6 +209,28 @@ export function Layout({
                   <span>Demo Tour</span>
                 </button>
               )}
+
+              {/* Network Status Toggle Pill: Online / Village Offline Mode */}
+              <button
+                type="button"
+                onClick={() => {
+                  const next = !isOfflineMode;
+                  setIsOfflineMode(next);
+                  try {
+                    localStorage.setItem('neurosathi_offline_mode', String(next));
+                  } catch {}
+                }}
+                className={`touch-target px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 border cursor-pointer ${
+                  isOfflineMode
+                    ? 'bg-amber-100 text-amber-900 border-amber-300 ring-2 ring-amber-400/30'
+                    : 'bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100'
+                }`}
+                title={isOfflineMode ? "Village Offline Mode active. Click to switch to Online." : "Online. Click to simulate Village Offline Mode."}
+              >
+                <span className={`w-2 h-2 rounded-full ${isOfflineMode ? 'bg-amber-500 animate-pulse' : 'bg-emerald-500'}`} />
+                <span className="hidden sm:inline">{isOfflineMode ? 'Village Offline Mode' : 'Online'}</span>
+                <span className="sm:hidden">{isOfflineMode ? 'Offline' : 'Online'}</span>
+              </button>
 
               {/* Language Selector */}
               <LanguageSelector

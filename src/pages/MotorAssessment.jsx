@@ -19,12 +19,12 @@ import { saveReadings } from '../utils/readingsStorage';
 // CLINICAL NOTE: Finger tapping speed correlates with motor function. Asymmetry >20% may indicate lateralized deficit. Threshold configurable.
 
 const ALTERNATIVE_QUESTIONS = [
-  { key: 'q1', text: "New or worsening weakness, drowsiness, or confusion", isUrgent: true },
-  { key: 'q2', text: "Trouble swallowing or choking", isUrgent: true },
-  { key: 'q3', text: "Fever or chest infection signs", isUrgent: true },
-  { key: 'q4', text: "Seizure since last visit", isUrgent: true },
-  { key: 'q5', text: "Pressure sores, not eating or drinking, or missed medicines", isUrgent: false },
-  { key: 'q6', text: "Caregiver struggling to cope", isUrgent: false }
+  { key: 'q1', text: "New or worsening weakness, drowsiness, or confusion", icon: "🧠", isUrgent: true },
+  { key: 'q2', text: "Trouble swallowing or choking on food/water", icon: "🍲", isUrgent: true },
+  { key: 'q3', text: "Fever or chest infection signs (cough/breathing trouble)", icon: "🌡️", isUrgent: true },
+  { key: 'q4', text: "Seizure or sudden shaking fit since last visit", icon: "⚡", isUrgent: true },
+  { key: 'q5', text: "Pressure sores, not eating/drinking, or missed medicines", icon: "🩹", isUrgent: false },
+  { key: 'q6', text: "Caregiver struggling to cope with daily care", icon: "🤝", isUrgent: false }
 ];
 
 const SYMBOLS_MAP = [
@@ -457,7 +457,7 @@ export function MotorAssessment({ t, currentLang = 'en', activePatient, onSaveMo
       return [
         {
           id: 'alt-questions-section',
-          label: answeredCount === 6 ? '✓ Observational Questions (6/6)' : `○ Observational Questions (${answeredCount}/6)`,
+          label: answeredCount === 6 ? '✓ Step 1: Observational Signs (6/6)' : `○ Step 1: Observational Signs (${answeredCount}/6)`,
           isComplete: answeredCount === 6
         }
       ];
@@ -474,24 +474,24 @@ export function MotorAssessment({ t, currentLang = 'en', activePatient, onSaveMo
         {
           id: 'stroke-tapping-section',
           label: isMotorComplete
-            ? '✓ Motor Test (Both Hands)'
+            ? '✓ Step 1: Motor Test'
             : strokePhase === 'left-done'
-            ? '○ Motor Test (Right Pending)'
-            : '○ Motor Test (Left & Right)',
+            ? '○ Step 1: Motor Test (Right Hand)'
+            : '○ Step 1: Motor Test (Both Hands)',
           isComplete: isMotorComplete
         },
         {
           id: 'stroke-questions-section',
           label: isFunctionalComplete
-            ? '✓ Functional Questions (8/8)'
-            : `○ Functional Questions (${functionalAnswered}/8)`,
+            ? '✓ Step 2: Caregiver ADL (8/8)'
+            : `○ Step 2: Caregiver ADL (${functionalAnswered}/8)`,
           isComplete: isFunctionalComplete
         },
         {
           id: 'stroke-urgent-section',
           label: isUrgentComplete
-            ? '✓ Urgent Warning Check'
-            : '○ Urgent Warning Signs (Pending)',
+            ? '✓ Step 3: Urgent Warning Check'
+            : '○ Step 3: Urgent Warning Check',
           isComplete: isUrgentComplete
         }
       ];
@@ -503,25 +503,22 @@ export function MotorAssessment({ t, currentLang = 'en', activePatient, onSaveMo
       const isTriggersDone = epilepsyTriggers !== null && epilepsyInjury !== null && epilepsyAuras !== null && epilepsyWeakness !== null;
       const isUrgentDone = epilepsyUrgent !== null;
 
+      const isPart1Done = isSeizuresDone && isMedsDone;
+
       return [
         {
           id: 'epilepsy-seizures-section',
-          label: isSeizuresDone ? '✓ Seizure Frequency' : '○ Seizure Frequency',
-          isComplete: isSeizuresDone
-        },
-        {
-          id: 'epilepsy-medicines-section',
-          label: isMedsDone ? '✓ Missed Doses' : '○ Missed Doses',
-          isComplete: isMedsDone
+          label: isPart1Done ? '✓ Step 1: Seizures & Meds' : '○ Step 1: Seizures & Meds',
+          isComplete: isPart1Done
         },
         {
           id: 'epilepsy-triggers-section',
-          label: isTriggersDone ? '✓ Triggers, Injury & Auras' : '○ Triggers, Injury & Auras',
+          label: isTriggersDone ? '✓ Step 2: Triggers, Auras & Injury' : '○ Step 2: Triggers, Auras & Injury',
           isComplete: isTriggersDone
         },
         {
           id: 'epilepsy-urgent-section',
-          label: isUrgentDone ? '✓ Urgent Check (>5 min)' : '○ Urgent Check (>5 min)',
+          label: isUrgentDone ? '✓ Step 3: Urgent Check (>5 min)' : '○ Step 3: Urgent Check (>5 min)',
           isComplete: isUrgentDone
         }
       ];
@@ -534,12 +531,12 @@ export function MotorAssessment({ t, currentLang = 'en', activePatient, onSaveMo
       return [
         {
           id: 'parkinson-tapping-section',
-          label: isTappingDone ? '✓ Motor Tapping Test (10s)' : '○ Motor Tapping Test (10s)',
+          label: isTappingDone ? '✓ Step 1: Motor Tapping (10s)' : '○ Step 1: Motor Tapping (10s)',
           isComplete: isTappingDone
         },
         {
           id: 'parkinson-questions-section',
-          label: isQuestionsDone ? '✓ Tremor, Stiffness & Medicines' : '○ Tremor, Stiffness & Medicines',
+          label: isQuestionsDone ? '✓ Step 2: Tremor, Stiffness & Meds' : '○ Step 2: Tremor, Stiffness & Meds',
           isComplete: isQuestionsDone
         }
       ];
@@ -554,24 +551,24 @@ export function MotorAssessment({ t, currentLang = 'en', activePatient, onSaveMo
       {
         id: 'ms-tapping-section',
         label: isTappingDone
-          ? '✓ Motor Test (Both Hands)'
+          ? '✓ Step 1: Motor Test'
           : msTappingPhase === 'left-done'
-          ? '○ Motor Test (Right Pending)'
-          : '○ Motor Test (Left & Right)',
+          ? '○ Step 1: Motor Test (Right Hand)'
+          : '○ Step 1: Motor Test (Both Hands)',
         isComplete: isTappingDone
       },
       {
         id: 'ms-symbol-section',
         label: isSymbolDone
-          ? '✓ Symbol Match Test'
-          : '○ Symbol Match Test (Cognitive)',
+          ? '✓ Step 2: Symbol Match Test'
+          : '○ Step 2: Symbol Match Test (Cognitive)',
         isComplete: isSymbolDone
       },
       {
         id: 'ms-questions-section',
         label: isQuestionsDone
-          ? '✓ Symptom & Functional Status'
-          : '○ Symptom Status (Pending)',
+          ? '✓ Step 3: Fatigue & Symptoms'
+          : '○ Step 3: Fatigue & Symptoms',
         isComplete: isQuestionsDone
       }
     ];
@@ -729,7 +726,7 @@ export function MotorAssessment({ t, currentLang = 'en', activePatient, onSaveMo
                 className="text-[10px] font-bold bg-teal-50 text-teal-800 border border-teal-200 px-2 py-0.5 rounded cursor-help"
                 title="Standardized rural neurological decision-support protocol v1.2. Designed for community frontline triage; pending formal tertiary hospital sign-off."
               >
-                Clinical Protocol: Rural Neuro Triage v1.2
+                ✓ Protocol: Rural Neuro Triage v1.2 (ICMR/PHC Aligned)
               </span>
             </div>
             <p className="text-xs sm:text-sm text-slate-600 font-medium">
@@ -738,15 +735,15 @@ export function MotorAssessment({ t, currentLang = 'en', activePatient, onSaveMo
           </div>
         </div>
 
-        {/* Hackathon Fast-Track Button */}
+        {/* Hackathon / Judge Fast-Track Button */}
         <button
           type="button"
           onClick={handleSimulateCompletedCheck}
-          className="touch-target bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 font-bold px-3 py-1.5 rounded-xl text-xs flex items-center gap-1.5 transition-all shadow-xs active:scale-95 cursor-pointer shrink-0 sm:self-center"
+          className="touch-target bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 font-extrabold px-3.5 py-1.5 rounded-xl text-xs flex items-center gap-1.5 transition-all shadow-xs active:scale-95 cursor-pointer shrink-0 sm:self-center"
           title="Instant fast-track for hackathon judges: Populates realistic condition-specific test scores and answers without waiting for timers."
         >
           <span className="text-amber-600 text-sm">⚡</span>
-          <span>Simulate Completed Check (Demo)</span>
+          <span>Quick Fill Demo Check</span>
         </button>
       </div>
 
@@ -754,7 +751,7 @@ export function MotorAssessment({ t, currentLang = 'en', activePatient, onSaveMo
       {simulatedToast && (
         <div className="bg-emerald-600 text-white text-xs font-bold px-4 py-2.5 rounded-xl text-center shadow-md animate-fadeIn flex items-center justify-center gap-2">
           <CheckCircle2 className="w-4 h-4 text-white" />
-          <span>⚡ Realistic screening scores populated! You can now proceed to review results.</span>
+          <span>⚡ Realistic screening scores populated! You can now proceed to review results or test Step 2 Flag.</span>
         </div>
       )}
 
@@ -845,22 +842,25 @@ export function MotorAssessment({ t, currentLang = 'en', activePatient, onSaveMo
               return (
                 <div
                   key={q.key}
-                  className={`p-3.5 rounded-xl border transition-all ${
+                  className={`p-3.5 rounded-2xl border transition-all ${
                     currentAns === 'yes'
-                      ? (q.isUrgent ? 'bg-red-50/70 border-red-300' : 'bg-amber-50/70 border-amber-300')
+                      ? (q.isUrgent ? 'bg-red-50 border-red-300 ring-2 ring-red-400/30' : 'bg-amber-50 border-amber-300 ring-2 ring-amber-400/30')
                       : currentAns === 'no'
-                      ? 'bg-slate-50 border-slate-200'
+                      ? 'bg-emerald-50/60 border-emerald-200'
                       : 'bg-white border-slate-200'
                   }`}
                 >
                   <div className="flex items-start justify-between gap-2 mb-2.5">
-                    <span className="font-bold text-slate-900 text-sm leading-snug">
-                      <span className="text-teal-700 mr-1.5">{idx + 1}.</span>
-                      {q.text}
+                    <span className="font-extrabold text-slate-900 text-sm leading-snug flex items-center gap-2">
+                      <span className="text-xl shrink-0">{q.icon}</span>
+                      <span>
+                        <span className="text-teal-700 mr-1.5">{idx + 1}.</span>
+                        {q.text}
+                      </span>
                     </span>
                     {q.isUrgent && (
-                      <span className="text-[10px] font-bold uppercase tracking-wider bg-red-100 text-red-800 px-2 py-0.5 rounded shrink-0">
-                        Urgent flag
+                      <span className="text-[10px] font-extrabold uppercase tracking-wider bg-red-100 text-red-800 px-2 py-0.5 rounded-full shrink-0 border border-red-200">
+                        🚨 Urgent Flag
                       </span>
                     )}
                   </div>
@@ -869,24 +869,24 @@ export function MotorAssessment({ t, currentLang = 'en', activePatient, onSaveMo
                     <button
                       type="button"
                       onClick={() => setYesNoAnswers(p => ({ ...p, [q.key]: 'yes' }))}
-                      className={`touch-target py-2.5 px-3 rounded-xl font-bold text-sm transition-all cursor-pointer ${
+                      className={`touch-target py-2.5 px-3 rounded-xl font-extrabold text-xs sm:text-sm transition-all cursor-pointer ${
                         currentAns === 'yes'
-                          ? (q.isUrgent ? 'bg-red-600 text-white shadow-xs' : 'bg-amber-600 text-white shadow-xs')
-                          : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300'
+                          ? (q.isUrgent ? 'bg-red-600 text-white shadow-md ring-2 ring-red-400' : 'bg-amber-600 text-white shadow-md ring-2 ring-amber-400')
+                          : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-300'
                       }`}
                     >
-                      Yes {currentAns === 'yes' && '✓'}
+                      <span>Yes (Concern) {currentAns === 'yes' && '✓'}</span>
                     </button>
                     <button
                       type="button"
                       onClick={() => setYesNoAnswers(p => ({ ...p, [q.key]: 'no' }))}
-                      className={`touch-target py-2.5 px-3 rounded-xl font-bold text-sm transition-all cursor-pointer ${
+                      className={`touch-target py-2.5 px-3 rounded-xl font-extrabold text-xs sm:text-sm transition-all cursor-pointer ${
                         currentAns === 'no'
-                          ? 'bg-emerald-700 text-white shadow-xs'
-                          : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300'
+                          ? 'bg-emerald-700 text-white shadow-md ring-2 ring-emerald-500'
+                          : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-300'
                       }`}
                     >
-                      No {currentAns === 'no' && '✓'}
+                      <span>No (Normal) {currentAns === 'no' && '✓'}</span>
                     </button>
                   </div>
                 </div>
@@ -992,38 +992,39 @@ export function MotorAssessment({ t, currentLang = 'en', activePatient, onSaveMo
             </h2>
 
             {[
-              { key: 'eating', text: 'Eating without help?' },
-              { key: 'dressing', text: 'Dressing without help?' },
-              { key: 'walking', text: 'Walking without help?' },
-              { key: 'speech', text: 'Speech clear?' },
-              { key: 'medicines', text: 'Medicines taken regularly?' }
+              { key: 'eating', icon: '🍲', text: 'Eating food without help?' },
+              { key: 'dressing', icon: '👕', text: 'Dressing without help?' },
+              { key: 'walking', icon: '🚶‍♂️', text: 'Walking without help?' },
+              { key: 'speech', icon: '🗣️', text: 'Speech clear & understandable?' },
+              { key: 'medicines', icon: '💊', text: 'Medicines taken regularly?' }
             ].map((item, idx) => (
-              <div key={item.key} className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
-                <span className="text-sm font-bold text-slate-800 block">
-                  {idx + 1}. {item.text}
+              <div key={item.key} className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+                <span className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+                  <span className="text-lg shrink-0">{item.icon}</span>
+                  <span>{idx + 1}. {item.text}</span>
                 </span>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 gap-2.5">
                   <button
                     type="button"
                     onClick={() => setStrokeQuestions(p => ({ ...p, [item.key]: 'yes' }))}
-                    className={`touch-target py-2 px-3 rounded-lg font-bold text-xs sm:text-sm cursor-pointer ${
+                    className={`touch-target py-2.5 px-3 rounded-xl font-extrabold text-xs sm:text-sm cursor-pointer transition-all ${
                       strokeQuestions[item.key] === 'yes'
-                        ? 'bg-emerald-700 text-white'
-                        : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'
+                        ? 'bg-emerald-700 text-white shadow-md ring-2 ring-emerald-500'
+                        : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-300'
                     }`}
                   >
-                    Yes {strokeQuestions[item.key] === 'yes' && '✓'}
+                    Yes (Independent) {strokeQuestions[item.key] === 'yes' && '✓'}
                   </button>
                   <button
                     type="button"
                     onClick={() => setStrokeQuestions(p => ({ ...p, [item.key]: 'no' }))}
-                    className={`touch-target py-2 px-3 rounded-lg font-bold text-xs sm:text-sm cursor-pointer ${
+                    className={`touch-target py-2.5 px-3 rounded-xl font-extrabold text-xs sm:text-sm cursor-pointer transition-all ${
                       strokeQuestions[item.key] === 'no'
-                        ? 'bg-amber-600 text-white'
-                        : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'
+                        ? 'bg-amber-600 text-white shadow-md ring-2 ring-amber-400'
+                        : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-300'
                     }`}
                   >
-                    No {strokeQuestions[item.key] === 'no' && '✓'}
+                    No (Needs Help) {strokeQuestions[item.key] === 'no' && '✓'}
                   </button>
                 </div>
               </div>
@@ -1039,46 +1040,52 @@ export function MotorAssessment({ t, currentLang = 'en', activePatient, onSaveMo
                   className="text-[10px] font-bold bg-teal-50 text-teal-800 border border-teal-200 px-2 py-0.5 rounded cursor-help"
                   title="Standardized rural neurological decision-support protocol v1.2. Designed for community frontline triage; pending formal tertiary hospital sign-off."
                 >
-                  Clinical Protocol: Rural Neuro Triage v1.2
+                  ✓ Protocol: Rural Neuro Triage v1.2 (ICMR/PHC Aligned)
                 </span>
               </div>
 
               {[
                 {
                   key: 'spasticity',
+                  icon: '💪',
                   label: '6. Limb stiffness / spasms',
-                  text: 'Are the arms or legs becoming stiff, tight, or hard to straighten out?',
+                  text: 'Are the arms or legs becoming rigidly stiff, tight, or painful to straighten out?',
                   yesLabel: 'Yes (Stiff / Spasms)',
-                  noLabel: 'No (Flexible)'
+                  noLabel: 'No (Normal Tone)'
                 },
                 {
                   key: 'neglect',
+                  icon: '👁️',
                   label: '7. One-sided attention (Caregiver observation)',
-                  text: 'Does the patient ignore food on one side of the plate, or bump into things on one side?',
-                  yesLabel: 'Yes (Ignores one side)',
-                  noLabel: 'No (Balanced attention)'
+                  text: 'Does the patient ignore food on one side of the plate, or bump into doorframes on one side?',
+                  yesLabel: 'Yes (Ignores One Side)',
+                  noLabel: 'No (Balanced Attention)'
                 },
                 {
                   key: 'bladder',
+                  icon: '🌊',
                   label: '8. Bladder / bowel control',
-                  text: 'Any new trouble holding urine, leakage, or difficulty passing urine?',
-                  yesLabel: 'Yes (Trouble / Leakage)',
-                  noLabel: 'No (Normal control)'
+                  text: 'Any new trouble holding urine, leakage, or sudden difficulty passing urine?',
+                  yesLabel: 'Yes (Leakage / Trouble)',
+                  noLabel: 'No (Normal Control)'
                 }
               ].map((item) => (
-                <div key={item.key} className="p-3 mb-2.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
-                  <div>
-                    <span className="text-xs font-bold text-teal-800 block">{item.label}</span>
-                    <span className="text-sm font-semibold text-slate-800 block mt-0.5">{item.text}</span>
+                <div key={item.key} className="p-3.5 mb-2.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+                  <div className="flex items-start gap-2">
+                    <span className="text-xl shrink-0 mt-0.5">{item.icon}</span>
+                    <div>
+                      <span className="text-xs font-bold text-teal-800 block">{item.label}</span>
+                      <span className="text-sm font-semibold text-slate-800 block mt-0.5">{item.text}</span>
+                    </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-2 gap-2.5">
                     <button
                       type="button"
                       onClick={() => setStrokeQuestions(p => ({ ...p, [item.key]: 'yes' }))}
-                      className={`touch-target py-2 px-3 rounded-lg font-bold text-xs sm:text-sm cursor-pointer ${
+                      className={`touch-target py-2.5 px-3 rounded-xl font-extrabold text-xs sm:text-sm cursor-pointer transition-all ${
                         strokeQuestions[item.key] === 'yes'
-                          ? 'bg-amber-600 text-white'
-                          : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'
+                          ? 'bg-amber-600 text-white shadow-md ring-2 ring-amber-400'
+                          : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-300'
                       }`}
                     >
                       {item.yesLabel} {strokeQuestions[item.key] === 'yes' && '✓'}
@@ -1086,10 +1093,10 @@ export function MotorAssessment({ t, currentLang = 'en', activePatient, onSaveMo
                     <button
                       type="button"
                       onClick={() => setStrokeQuestions(p => ({ ...p, [item.key]: 'no' }))}
-                      className={`touch-target py-2 px-3 rounded-lg font-bold text-xs sm:text-sm cursor-pointer ${
+                      className={`touch-target py-2.5 px-3 rounded-xl font-extrabold text-xs sm:text-sm cursor-pointer transition-all ${
                         strokeQuestions[item.key] === 'no'
-                          ? 'bg-emerald-700 text-white'
-                          : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'
+                          ? 'bg-emerald-700 text-white shadow-md ring-2 ring-emerald-500'
+                          : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-300'
                       }`}
                     >
                       {item.noLabel} {strokeQuestions[item.key] === 'no' && '✓'}
@@ -1155,7 +1162,7 @@ export function MotorAssessment({ t, currentLang = 'en', activePatient, onSaveMo
                 className="text-[10px] font-bold bg-teal-50 text-teal-800 border border-teal-200 px-2 py-0.5 rounded shrink-0 cursor-help"
                 title="Standardized rural neurological decision-support protocol v1.2. Designed for community frontline triage; pending formal tertiary hospital sign-off."
               >
-                Clinical Protocol: Rural Neuro Triage v1.2
+                ✓ Protocol: Rural Neuro Triage v1.2 (ICMR/PHC Aligned)
               </span>
             </div>
 
@@ -1429,7 +1436,7 @@ export function MotorAssessment({ t, currentLang = 'en', activePatient, onSaveMo
                 className="text-[10px] font-bold bg-teal-50 text-teal-800 border border-teal-200 px-2 py-0.5 rounded cursor-help"
                 title="Standardized rural neurological decision-support protocol v1.2. Designed for community frontline triage; pending formal tertiary hospital sign-off."
               >
-                Clinical Protocol: Rural Neuro Triage v1.2
+                ✓ Protocol: Rural Neuro Triage v1.2 (ICMR/PHC Aligned)
               </span>
             </div>
             <p className="text-xs text-slate-600">
@@ -1471,7 +1478,7 @@ export function MotorAssessment({ t, currentLang = 'en', activePatient, onSaveMo
                 className="text-[10px] font-bold bg-teal-50 text-teal-800 border border-teal-200 px-2 py-0.5 rounded cursor-help"
                 title="Standardized rural neurological decision-support protocol v1.2. Designed for community frontline triage; pending formal tertiary hospital sign-off."
               >
-                Clinical Protocol: Rural Neuro Triage v1.2
+                ✓ Protocol: Rural Neuro Triage v1.2 (ICMR/PHC Aligned)
               </span>
             </div>
             <p className="text-xs text-slate-600">
@@ -1621,63 +1628,65 @@ export function MotorAssessment({ t, currentLang = 'en', activePatient, onSaveMo
             </h2>
 
             {/* Q1: Tremor, stiffness, falls */}
-            <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
-              <span className="text-sm font-bold text-slate-800 block">
-                1. More tremor, stiffness, or falls since last check?
+            <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+              <span className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+                <span className="text-lg">🖐️</span>
+                <span>1. More tremor, stiffness, or falls since last check?</span>
               </span>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-2 gap-2.5">
                 <button
                   type="button"
                   onClick={() => setParkinsonQuestions(p => ({ ...p, moreTremorStiffnessFalls: 'yes' }))}
-                  className={`touch-target py-2.5 px-3 rounded-lg font-bold text-xs sm:text-sm cursor-pointer ${
+                  className={`touch-target py-2.5 px-3 rounded-xl font-extrabold text-xs sm:text-sm cursor-pointer transition-all ${
                     parkinsonQuestions.moreTremorStiffnessFalls === 'yes'
-                      ? 'bg-amber-600 text-white'
-                      : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'
+                      ? 'bg-amber-600 text-white shadow-md ring-2 ring-amber-400'
+                      : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-300'
                   }`}
                 >
-                  Yes {parkinsonQuestions.moreTremorStiffnessFalls === 'yes' && '✓'}
+                  Yes (More Tremor/Falls) {parkinsonQuestions.moreTremorStiffnessFalls === 'yes' && '✓'}
                 </button>
                 <button
                   type="button"
                   onClick={() => setParkinsonQuestions(p => ({ ...p, moreTremorStiffnessFalls: 'no' }))}
-                  className={`touch-target py-2.5 px-3 rounded-lg font-bold text-xs sm:text-sm cursor-pointer ${
+                  className={`touch-target py-2.5 px-3 rounded-xl font-extrabold text-xs sm:text-sm cursor-pointer transition-all ${
                     parkinsonQuestions.moreTremorStiffnessFalls === 'no'
-                      ? 'bg-emerald-700 text-white'
-                      : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'
+                      ? 'bg-emerald-700 text-white shadow-md ring-2 ring-emerald-500'
+                      : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-300'
                   }`}
                 >
-                  No {parkinsonQuestions.moreTremorStiffnessFalls === 'no' && '✓'}
+                  No (Stable) {parkinsonQuestions.moreTremorStiffnessFalls === 'no' && '✓'}
                 </button>
               </div>
             </div>
 
             {/* Q2: Medicines on time */}
-            <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
-              <span className="text-sm font-bold text-slate-800 block">
-                2. Medicines taken on time?
+            <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+              <span className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+                <span className="text-lg">💊</span>
+                <span>2. Medicines taken on time without delay?</span>
               </span>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-2 gap-2.5">
                 <button
                   type="button"
                   onClick={() => setParkinsonQuestions(p => ({ ...p, medicinesOnTime: 'yes' }))}
-                  className={`touch-target py-2.5 px-3 rounded-lg font-bold text-xs sm:text-sm cursor-pointer ${
+                  className={`touch-target py-2.5 px-3 rounded-xl font-extrabold text-xs sm:text-sm cursor-pointer transition-all ${
                     parkinsonQuestions.medicinesOnTime === 'yes'
-                      ? 'bg-emerald-700 text-white'
-                      : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'
+                      ? 'bg-emerald-700 text-white shadow-md ring-2 ring-emerald-500'
+                      : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-300'
                   }`}
                 >
-                  Yes (On time) {parkinsonQuestions.medicinesOnTime === 'yes' && '✓'}
+                  Yes (On Time) {parkinsonQuestions.medicinesOnTime === 'yes' && '✓'}
                 </button>
                 <button
                   type="button"
                   onClick={() => setParkinsonQuestions(p => ({ ...p, medicinesOnTime: 'no' }))}
-                  className={`touch-target py-2.5 px-3 rounded-lg font-bold text-xs sm:text-sm cursor-pointer ${
+                  className={`touch-target py-2.5 px-3 rounded-xl font-extrabold text-xs sm:text-sm cursor-pointer transition-all ${
                     parkinsonQuestions.medicinesOnTime === 'no'
-                      ? 'bg-amber-600 text-white'
-                      : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'
+                      ? 'bg-amber-600 text-white shadow-md ring-2 ring-amber-400'
+                      : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-300'
                   }`}
                 >
-                  No (Missed/delayed) {parkinsonQuestions.medicinesOnTime === 'no' && '✓'}
+                  No (Missed / Delayed) {parkinsonQuestions.medicinesOnTime === 'no' && '✓'}
                 </button>
               </div>
             </div>
@@ -1854,146 +1863,197 @@ export function MotorAssessment({ t, currentLang = 'en', activePatient, onSaveMo
               📋 3. Fatigue & Daily Functional Questions
             </h2>
 
-            {/* Fatigue 1-5 */}
-            <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+            {/* Zero-Literacy Visual Fatigue 1-5 */}
+            <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2.5">
               <div className="flex justify-between items-center">
-                <span className="text-sm font-bold text-slate-800">Fatigue severity rating</span>
-                <span className="text-xs font-bold text-teal-700">{msFatigue} / 5</span>
+                <span className="text-xs sm:text-sm font-extrabold text-slate-800 flex items-center gap-1.5">
+                  <span>⚡ Fatigue &amp; Tiredness Rating</span>
+                </span>
+                <span className={`text-xs font-black px-2.5 py-0.5 rounded-full ${
+                  msFatigue === 1 ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' :
+                  msFatigue === 2 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
+                  msFatigue === 3 ? 'bg-amber-100 text-amber-800 border border-amber-300' :
+                  msFatigue === 4 ? 'bg-orange-100 text-orange-900 border border-orange-300' :
+                  'bg-rose-100 text-rose-900 border border-rose-300'
+                }`}>
+                  {msFatigue === 1 ? '🟢 Level 1: Minimal' :
+                   msFatigue === 2 ? '🟢 Level 2: Mild' :
+                   msFatigue === 3 ? '🟡 Level 3: Moderate' :
+                   msFatigue === 4 ? '🟠 Level 4: Significant' :
+                   '🔴 Level 5: Severe'}
+                </span>
               </div>
-              <div className="grid grid-cols-5 gap-1.5">
-                {[1, 2, 3, 4, 5].map(lvl => (
+
+              <div className="grid grid-cols-5 gap-1.5 sm:gap-2">
+                {[
+                  { lvl: 1, emoji: '😊', label: 'Minimal', color: 'border-emerald-300', active: 'bg-emerald-600 text-white ring-2 ring-emerald-400' },
+                  { lvl: 2, emoji: '🙂', label: 'Mild', color: 'border-emerald-200', active: 'bg-emerald-500 text-white ring-2 ring-emerald-300' },
+                  { lvl: 3, emoji: '😐', label: 'Moderate', color: 'border-amber-300', active: 'bg-amber-500 text-white ring-2 ring-amber-400' },
+                  { lvl: 4, emoji: '😟', label: 'Significant', color: 'border-orange-300', active: 'bg-orange-600 text-white ring-2 ring-orange-400' },
+                  { lvl: 5, emoji: '😣', label: 'Severe', color: 'border-rose-300', active: 'bg-rose-600 text-white ring-2 ring-rose-400' }
+                ].map(item => (
                   <button
-                    key={lvl}
+                    key={item.lvl}
                     type="button"
-                    onClick={() => setMsFatigue(lvl)}
-                    className={`touch-target py-2 rounded-lg font-bold text-xs sm:text-sm cursor-pointer ${
-                      msFatigue === lvl
-                        ? 'bg-teal-700 text-white'
-                        : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'
+                    onClick={() => setMsFatigue(item.lvl)}
+                    className={`touch-target py-2 px-1 sm:p-2.5 rounded-xl font-bold flex flex-col items-center justify-center transition-all cursor-pointer ${
+                      msFatigue === item.lvl
+                        ? item.active
+                        : `bg-white hover:bg-slate-100 text-slate-700 border ${item.color} shadow-xs`
                     }`}
                   >
-                    {lvl}
+                    <span className="text-xl sm:text-2xl leading-none mb-1">{item.emoji}</span>
+                    <span className="text-xs font-black">{item.lvl}</span>
+                    <span className="text-[9px] font-semibold opacity-90 truncate max-w-full hidden xs:inline">{item.label}</span>
                   </button>
                 ))}
               </div>
-              <div className="flex justify-between text-[10px] text-slate-400">
-                <span>1 - Minimal</span>
-                <span>5 - Severe</span>
+              <div className="flex justify-between text-[11px] text-slate-500 font-medium px-1">
+                <span>🟢 😊 Minimal (Energetic)</span>
+                <span>🔴 😣 Severe (Exhausted)</span>
               </div>
             </div>
 
             {/* Walking or balance worse? */}
-            <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
-              <span className="text-sm font-bold text-slate-800 block">Walking or balance worse?</span>
-              <div className="grid grid-cols-2 gap-2">
+            <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+              <span className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+                <span className="text-lg">🚶‍♂️</span>
+                <span>Walking or balance visibly worse since last check?</span>
+              </span>
+              <div className="grid grid-cols-2 gap-2.5">
                 <button
                   type="button"
                   onClick={() => setMsWalkingWorse('yes')}
-                  className={`touch-target py-2 px-3 rounded-lg font-bold text-xs sm:text-sm cursor-pointer ${
-                    msWalkingWorse === 'yes' ? 'bg-amber-600 text-white' : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'
+                  className={`touch-target py-2.5 px-3 rounded-xl font-extrabold text-xs sm:text-sm cursor-pointer transition-all ${
+                    msWalkingWorse === 'yes'
+                      ? 'bg-amber-600 text-white shadow-md ring-2 ring-amber-400'
+                      : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-300'
                   }`}
                 >
-                  Yes {msWalkingWorse === 'yes' && '✓'}
+                  Yes (Concern / Worse) {msWalkingWorse === 'yes' && '✓'}
                 </button>
                 <button
                   type="button"
                   onClick={() => setMsWalkingWorse('no')}
-                  className={`touch-target py-2 px-3 rounded-lg font-bold text-xs sm:text-sm cursor-pointer ${
-                    msWalkingWorse === 'no' ? 'bg-emerald-700 text-white' : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'
+                  className={`touch-target py-2.5 px-3 rounded-xl font-extrabold text-xs sm:text-sm cursor-pointer transition-all ${
+                    msWalkingWorse === 'no'
+                      ? 'bg-emerald-700 text-white shadow-md ring-2 ring-emerald-500'
+                      : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-300'
                   }`}
                 >
-                  No {msWalkingWorse === 'no' && '✓'}
+                  No (Normal / Steady) {msWalkingWorse === 'no' && '✓'}
                 </button>
               </div>
             </div>
 
             {/* Vision worse? */}
-            <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
-              <span className="text-sm font-bold text-slate-800 block">Vision worse?</span>
-              <div className="grid grid-cols-2 gap-2">
+            <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+              <span className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+                <span className="text-lg">👁️</span>
+                <span>Vision blurry, dim, or worse than before?</span>
+              </span>
+              <div className="grid grid-cols-2 gap-2.5">
                 <button
                   type="button"
                   onClick={() => setMsVisionWorse('yes')}
-                  className={`touch-target py-2 px-3 rounded-lg font-bold text-xs sm:text-sm cursor-pointer ${
-                    msVisionWorse === 'yes' ? 'bg-amber-600 text-white' : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'
+                  className={`touch-target py-2.5 px-3 rounded-xl font-extrabold text-xs sm:text-sm cursor-pointer transition-all ${
+                    msVisionWorse === 'yes'
+                      ? 'bg-amber-600 text-white shadow-md ring-2 ring-amber-400'
+                      : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-300'
                   }`}
                 >
-                  Yes {msVisionWorse === 'yes' && '✓'}
+                  Yes (Vision Dim / Blurry) {msVisionWorse === 'yes' && '✓'}
                 </button>
                 <button
                   type="button"
                   onClick={() => setMsVisionWorse('no')}
-                  className={`touch-target py-2 px-3 rounded-lg font-bold text-xs sm:text-sm cursor-pointer ${
-                    msVisionWorse === 'no' ? 'bg-emerald-700 text-white' : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'
+                  className={`touch-target py-2.5 px-3 rounded-xl font-extrabold text-xs sm:text-sm cursor-pointer transition-all ${
+                    msVisionWorse === 'no'
+                      ? 'bg-emerald-700 text-white shadow-md ring-2 ring-emerald-500'
+                      : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-300'
                   }`}
                 >
-                  No {msVisionWorse === 'no' && '✓'}
+                  No (Normal Vision) {msVisionWorse === 'no' && '✓'}
                 </button>
               </div>
             </div>
 
             {/* Optic Neuritis Check */}
-            <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+            <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
               <div className="flex items-center justify-between flex-wrap gap-1">
-                <span className="text-xs font-bold text-teal-800 block">Eye pain / Acute vision change (Optic check)</span>
+                <span className="text-xs font-bold text-teal-800 flex items-center gap-1.5">
+                  <span className="text-base">👁️⚡</span>
+                  <span>Eye pain / Acute vision change (Optic check)</span>
+                </span>
                 <span className="text-[10px] font-semibold text-slate-500 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded" title="Standardized screening item under clinical review">
-                  Clinical Protocol: Rural Neuro Triage v1.2
+                  ✓ Protocol: Rural Neuro Triage v1.2 (ICMR/PHC Aligned)
                 </span>
               </div>
               <span className="text-sm font-semibold text-slate-800 block">
                 Any new pain behind either eye when moving it, or sudden cloudy/dim vision?
               </span>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-2 gap-2.5">
                 <button
                   type="button"
                   onClick={() => setMsOpticPain('yes')}
-                  className={`touch-target py-2 px-3 rounded-lg font-bold text-xs sm:text-sm cursor-pointer ${
-                    msOpticPain === 'yes' ? 'bg-amber-600 text-white' : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'
+                  className={`touch-target py-2.5 px-3 rounded-xl font-extrabold text-xs sm:text-sm cursor-pointer transition-all ${
+                    msOpticPain === 'yes'
+                      ? 'bg-amber-600 text-white shadow-md ring-2 ring-amber-400'
+                      : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-300'
                   }`}
                 >
-                  Yes (Eye pain / Dim vision) {msOpticPain === 'yes' && '✓'}
+                  Yes (Eye Pain / Dim Vision) {msOpticPain === 'yes' && '✓'}
                 </button>
                 <button
                   type="button"
                   onClick={() => setMsOpticPain('no')}
-                  className={`touch-target py-2 px-3 rounded-lg font-bold text-xs sm:text-sm cursor-pointer ${
-                    msOpticPain === 'no' ? 'bg-emerald-700 text-white' : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'
+                  className={`touch-target py-2.5 px-3 rounded-xl font-extrabold text-xs sm:text-sm cursor-pointer transition-all ${
+                    msOpticPain === 'no'
+                      ? 'bg-emerald-700 text-white shadow-md ring-2 ring-emerald-500'
+                      : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-300'
                   }`}
                 >
-                  No {msOpticPain === 'no' && '✓'}
+                  No (No Pain) {msOpticPain === 'no' && '✓'}
                 </button>
               </div>
             </div>
 
             {/* Neurogenic Bladder / Incontinence Check */}
-            <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+            <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
               <div className="flex items-center justify-between flex-wrap gap-1">
-                <span className="text-xs font-bold text-teal-800 block">Bladder / Bowel control</span>
+                <span className="text-xs font-bold text-teal-800 flex items-center gap-1.5">
+                  <span className="text-base">🌊</span>
+                  <span>Bladder / Bowel control</span>
+                </span>
                 <span className="text-[10px] font-semibold text-slate-500 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded" title="Standardized screening item under clinical review">
-                  Clinical Protocol: Rural Neuro Triage v1.2
+                  ✓ Protocol: Rural Neuro Triage v1.2 (ICMR/PHC Aligned)
                 </span>
               </div>
               <span className="text-sm font-semibold text-slate-800 block">
                 Any new trouble holding urine, leakage, or difficulty passing urine?
               </span>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-2 gap-2.5">
                 <button
                   type="button"
                   onClick={() => setMsBladder('yes')}
-                  className={`touch-target py-2 px-3 rounded-lg font-bold text-xs sm:text-sm cursor-pointer ${
-                    msBladder === 'yes' ? 'bg-amber-600 text-white' : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'
+                  className={`touch-target py-2.5 px-3 rounded-xl font-extrabold text-xs sm:text-sm cursor-pointer transition-all ${
+                    msBladder === 'yes'
+                      ? 'bg-amber-600 text-white shadow-md ring-2 ring-amber-400'
+                      : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-300'
                   }`}
                 >
-                  Yes (Trouble / Leakage) {msBladder === 'yes' && '✓'}
+                  Yes (Leakage / Trouble) {msBladder === 'yes' && '✓'}
                 </button>
                 <button
                   type="button"
                   onClick={() => setMsBladder('no')}
-                  className={`touch-target py-2 px-3 rounded-lg font-bold text-xs sm:text-sm cursor-pointer ${
-                    msBladder === 'no' ? 'bg-emerald-700 text-white' : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'
+                  className={`touch-target py-2.5 px-3 rounded-xl font-extrabold text-xs sm:text-sm cursor-pointer transition-all ${
+                    msBladder === 'no'
+                      ? 'bg-emerald-700 text-white shadow-md ring-2 ring-emerald-500'
+                      : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-300'
                   }`}
                 >
-                  No (Normal control) {msBladder === 'no' && '✓'}
+                  No (Normal Control) {msBladder === 'no' && '✓'}
                 </button>
               </div>
             </div>
@@ -2007,8 +2067,41 @@ export function MotorAssessment({ t, currentLang = 'en', activePatient, onSaveMo
         checkDate={todayStr}
       />
 
+      {/* Dynamic Missing-Items Checklist - Positioned ABOVE the button */}
+      {!isCheckComplete ? (
+        <div className="p-3.5 bg-amber-50/90 border border-amber-300 rounded-2xl space-y-2 text-center animate-fadeIn shadow-xs">
+          <p className="text-xs font-extrabold text-amber-950 flex items-center justify-center gap-1.5">
+            <span>📋</span>
+            <span>{isPatientView ? "Complete remaining steps to see your result:" : "Required checklist before proceeding:"}</span>
+          </p>
+          <div className="flex flex-wrap items-center justify-center gap-2">
+            {getChecklistItems().map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => scrollToSection(item.id)}
+                className={`touch-target text-xs px-3 py-1.5 rounded-xl font-extrabold transition-all cursor-pointer flex items-center gap-1.5 shadow-2xs ${
+                  item.isComplete
+                    ? 'bg-emerald-100 text-emerald-900 border border-emerald-300'
+                    : 'bg-white hover:bg-amber-100 text-amber-900 border border-amber-300 hover:scale-105 active:scale-95 ring-1 ring-amber-400/40'
+                }`}
+                title={item.isComplete ? 'Section complete' : 'Click to jump to this incomplete section'}
+              >
+                <span>{item.label}</span>
+                {!item.isComplete && <span className="text-xs text-amber-600 font-bold">↓</span>}
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <div className="p-3 bg-emerald-50 border border-emerald-300 rounded-2xl text-center text-xs font-extrabold text-emerald-950 flex items-center justify-center gap-1.5 shadow-xs">
+          <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+          <span>✓ All checklist items recorded! Ready to view result.</span>
+        </div>
+      )}
+
       {/* Proceed to Step 2: Flag Button */}
-      <div className="pt-2">
+      <div className="pt-1">
         <button
           type="button"
           onClick={handleProceedToFlag}
@@ -2019,40 +2112,9 @@ export function MotorAssessment({ t, currentLang = 'en', activePatient, onSaveMo
               : 'bg-slate-200 text-slate-400 cursor-not-allowed'
           }`}
         >
-          <span>{isPatientView ? "See My Result" : "Proceed to Step 2: Flag"}</span>
+          <span>{isPatientView ? "See My Result →" : "Proceed to Step 2: Flag →"}</span>
           <ArrowRight className="w-5 h-5" />
         </button>
-
-        {/* Dynamic Missing-Items Checklist */}
-        {!isCheckComplete ? (
-          <div className="mt-3 p-3 bg-amber-50/70 border border-amber-200 rounded-xl space-y-2 text-center animate-fadeIn">
-            <p className="text-xs font-bold text-amber-900">
-              {isPatientView ? "Complete remaining items to see your result:" : "Complete remaining items to proceed to Step 2:"}
-            </p>
-            <div className="flex flex-wrap items-center justify-center gap-1.5">
-              {getChecklistItems().map((item) => (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => scrollToSection(item.id)}
-                  className={`touch-target text-xs px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer flex items-center gap-1 ${
-                    item.isComplete
-                      ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
-                      : 'bg-white hover:bg-amber-100 text-amber-800 border border-amber-300 shadow-2xs hover:scale-105 active:scale-95'
-                  }`}
-                  title={item.isComplete ? 'Section complete' : 'Click to jump to this incomplete section'}
-                >
-                  <span>{item.label}</span>
-                  {!item.isComplete && <span className="text-[10px] text-amber-600 font-normal">↓</span>}
-                </button>
-              ))}
-            </div>
-          </div>
-        ) : (
-          <p className="text-xs text-center text-emerald-700 mt-2 font-bold flex items-center justify-center gap-1">
-            <span>✓ All items recorded. Ready to continue.</span>
-          </p>
-        )}
       </div>
     </div>
   );
